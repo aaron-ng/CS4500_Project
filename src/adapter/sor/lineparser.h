@@ -19,17 +19,22 @@ class LineParser {
             if (sizeHint != -1) { tokens.reserve(sizeHint); }
 
             size_t last_open = -1;
+            bool in_quotes = false;
             for (int i = 0; i < str.length(); i++) {
                 char atI = str[i];
-                if (last_open == -1) {
-                    if (atI == '<') { last_open = i; }
-                    else if (!isspace(atI)) { return std::vector<std::string>(); }
-                } else {
-                    if (atI == '<') { return std::vector<std::string>(); }
-                    if (atI == '>') {
-                        std::string token = stripDelimsAndWhitespace(str, last_open + 1, i - 1);
-                        tokens.emplace_back(token);
-                        last_open = -1;
+                if (atI == '"') {
+                    in_quotes = !in_quotes;
+                } else if (!in_quotes) {
+                    if (last_open == -1) {
+                        if (atI == '<') { last_open = i; }
+                        else if (!isspace(atI)) { return std::vector<std::string>(); }
+                    } else {
+                        if (atI == '<') { return std::vector<std::string>(); }
+                        if (atI == '>') {
+                            std::string token = stripDelimsAndWhitespace(str, last_open + 1, i - 1);
+                            tokens.emplace_back(token);
+                            last_open = -1;
+                        }
                     }
                 }
             }

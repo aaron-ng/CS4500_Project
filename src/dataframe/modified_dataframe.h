@@ -330,7 +330,7 @@ public:
     char* _types = nullptr;
 
     /** Copying constructor. This will not copy the row names */
-    Schema(Schema& from) {
+    Schema(const Schema& from) {
         _types = duplicate(from._types);
         for (size_t i = 0; i < from._columnNames.size(); i++) {
             String* name = from._columnNames.get(i)->s;

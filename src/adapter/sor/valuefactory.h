@@ -3,7 +3,6 @@
 #include <vector>
 #include <unordered_map>
 
-#include "../table/column.h"
 #include "../values/valueproducer.h"
 #include "../values/valueproducers.h"
 
@@ -18,11 +17,24 @@ class ValueFactory {
         /** The producers in producers based on the type of value they produce */
         std::vector<ValueProducer*> orderedProducers;
 
+        /**
+         * Returns the index of the producer that produces the given type in orderedProducers
+         * @param type The type of producer to return the index for
+         */
+        inline int indexForColumnType(char type) const {
+            switch (type) {
+                case STRING: return 0;
+                case INT: return 1;
+                case FLOAT: return 2;
+                case BOOL: return 3;
+            }
+        }
+
     public:
 
         ValueFactory() {
             orderedProducers.resize(producers.size());
-            for (ValueProducer* producer : producers) { orderedProducers[producer->producedType()] = producer; }
+            for (ValueProducer* producer : producers) { orderedProducers[indexForColumnType(producer->producedType())] = producer; }
         }
 
         ~ValueFactory() { for (ValueProducer* producer : producers) { delete producer; } }
@@ -33,8 +45,8 @@ class ValueFactory {
          * @param tokens The tokens to determine the schema from
          * @return The schema for the given row
          */
-        std::vector<ValueType> getSchema(const std::vector<std::string>& tokens) const {
-            std::vector<ValueType> outSchema;
+        std::vector<ColumnType> getSchema(const std::vector<std::string>& tokens) const {
+            std::vector<ColumnType> outSchema;
 
             for (auto i = tokens.begin(); i != tokens.end(); i++) {
                 bool added = false;
@@ -46,31 +58,29 @@ class ValueFactory {
                     }
                 }
 
-                if (!added) { outSchema.push_back(UNKNOWN); }
+                if (!added) { outSchema.push_back(BOOL); }
             }
 
             return outSchema;
         }
 
         /**
-         * Adds a row to the columns using a collection of given SoR tokens These tokens should have no leading or trailing whitespace
-         * and not have < or >. If the number of tokens is less than the number of columns, the columns without corresponding tokens
-         * will be populated with empties.
+         * Populates the row using the value producers. The row is assumed to match the schema
          *
          * If there are no tokens passed in, the entire row is skipped.
          *
-         * @param columns The columns to append to
+         * @param schema The schema to use to populate the row
          * @param tokens The tokens to parse using the columns as the schema.
+         * @param row The row to write the data to
          */
-        void addRow(const std::vector<Column*>& columns, const std::vector<std::string>& tokens) const {
+        void populateRow(Schema& schema, const std::vector<std::string>& tokens, Row& row) const {
             if (tokens.empty()) { return; }
 
-            for (int i = 0; i < columns.size(); i++) {
-                Column* column = columns[i];
+            for (int i = 0; i < schema.length(); i++) {
+                char type = schema.col_type(i);
                 if (i < tokens.size()) {
-                    Value* producedValue = orderedProducers[column->valueType]->produce(tokens[i]);
-                    column->appendRow(producedValue ? producedValue : new EmptyValue());
-                } else { column->appendRow(new EmptyValue()); }
+                    orderedProducers[indexForColumnType(type)]->produce(tokens[i], row, i);
+                } else { /* EMPTY */ }
             }
         }
 };

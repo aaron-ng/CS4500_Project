@@ -1,8 +1,8 @@
 #pragma once
 #include <arpa/inet.h>
 #include <netinet/in.h>
-#include "string.h"
-#include "object.h"
+#include "../string.h"
+#include "../object.h"
 #include "example_classes.h"
 
 /**

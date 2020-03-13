@@ -3,31 +3,33 @@
 #include <string.h>
 
 #include "valueproducer.h"
-#include "values.h"
-#include "value.h"
+#include "../../dataframe/column_type.h"
 
 /** A value producer for a string */
 class StringProducer: public ValueProducer {
     public:
 
         /**
-         * Produces a new string or nullptr if it cannot be produced. If there are spaces in the string, quotes must be the first
-         * and last char of str.
-         * @param str The string to produce a new string from. This assumes there is no leading or trailing whitespace.
-         * @return A StringValue or nullptr if one could not be parsed
+         * Attempts to produce a value from the given string. If a value cannot be produce the behavior is undefined.
+         * @param str The string to parse a value from
+         * @param row The row to add the value to
+         * @param idx The index in the row to add the value in
+         * @return The resulting value or nullptr if a value could not be parsed
          */
-        Value* produce(const std::string& str) override {
+        virtual void produce(const std::string& str, Row& row, size_t idx) override {
+            String* string = nullptr;
+
             if (!str.empty()) {
                 if (strHasQuotes(str)) {
-                    return new StringValue(str.substr(1, str.length() - 2));
+                    string =  new String(str.substr(1, str.length() - 2).c_str());
                 } else if (str.find(' ') == std::string::npos) {
-                    return new StringValue(str);
+                    string = new String(str.c_str());
                 } else {
-                    return new EmptyValue();
+                    // EMPTY
                 }
             }
 
-            return nullptr;
+            if (string) { row.set(idx, string); }
         }
 
         /**
@@ -42,7 +44,7 @@ class StringProducer: public ValueProducer {
         }
 
         /** This class produces string values */
-        ValueType producedType() const override { return STRING; }
+        ColumnType producedType() const override { return STRING; }
 
     private:
 
@@ -76,15 +78,16 @@ class FloatProducer : public ValueProducer {
     public:
 
         /**
-         * Produces a new float value if possible. Floats can have a leading positive and negative sign,
-         * one decimal with no spaces. If a float could not be parsed, nullptr is returned
-         * @param str The string to parse the float from
-         * @return the parsed float value, nullptr otherwise
+         * Attempts to produce a value from the given string. If a value cannot be produce the behavior is undefined.
+         * @param str The string to parse a value from
+         * @param row The row to add the value to
+         * @param idx The index in the row to add the value in
+         * @return The resulting value or nullptr if a value could not be parsed
          */
-        Value* produce(const std::string& str) override {
-            if (!isValidNumber(str, true)) { return nullptr; }
-            try { return new FloatValue(atof(str.c_str())); }
-            catch (std::exception e) { return nullptr; }
+        virtual void produce(const std::string& str, Row& row, size_t idx) override {
+            if (!isValidNumber(str, true)) { /* EMPTY */ }
+            try { row.set(idx, (float)atof(str.c_str())); }
+            catch (std::exception e) { /* EMPTY */ }
         }
 
         /**
@@ -99,7 +102,7 @@ class FloatProducer : public ValueProducer {
         }
 
         /** This class produces float values */
-        ValueType producedType() const override { return FLOAT; }
+        ColumnType producedType() const override { return FLOAT; }
 };
 
 /** A class that produces an IntValue */
@@ -107,15 +110,16 @@ class IntProducer : public ValueProducer {
     public:
 
         /**
-         * Produces a new int value if possible. Ints can have a leading positive and negative sign and no spaces.
-         * If a int could not be parsed, nullptr is returned
-         * @param str The string to parse the int from
-         * @return the parsed int value, nullptr otherwise
+         * Attempts to produce a value from the given string. If a value cannot be produce the behavior is undefined.
+         * @param str The string to parse a value from
+         * @param row The row to add the value to
+         * @param idx The index in the row to add the value in
+         * @return The resulting value or nullptr if a value could not be parsed
          */
-        Value* produce(const std::string& str) override {
-            if (!isValidNumber(str, false)) { return nullptr; }
-            try { return new IntValue(atoi(str.c_str())); }
-            catch (std::exception e) { return nullptr; }
+        virtual void produce(const std::string& str, Row& row, size_t idx) override {
+            if (!isValidNumber(str, false)) { /* EMPTY */ }
+            try { return  row.set(idx, atoi(str.c_str())); }
+            catch (std::exception e) { /* EMPTY */ }
         }
 
         /**
@@ -130,7 +134,7 @@ class IntProducer : public ValueProducer {
         }
 
         /** This class produces int values */
-        ValueType producedType() const override { return INT; }
+        ColumnType producedType() const override { return INT; }
 };
 
 /** A class that produces a BoolValue */
@@ -138,14 +142,16 @@ class BoolProducer: public ValueProducer {
     public:
 
         /**
-         * Produces a new bool value if the given string is 0 or 1, otherwise returns nullptr
-         * @param str The string to produce a bool from
-         * @return A BoolValue or nullptr if the string was not a bool
+         * Attempts to produce a value from the given string. If a value cannot be produce the behavior is undefined.
+         * @param str The string to parse a value from
+         * @param row The row to add the value to
+         * @param idx The index in the row to add the value in
+         * @return The resulting value or nullptr if a value could not be parsed
          */
-        Value* produce(const std::string& str) override {
-            if (str == "0") { return new BoolValue(0); }
-            if (str == "1") { return new BoolValue(1); }
-            return nullptr;
+        virtual void produce(const std::string& str, Row& row, size_t idx) override {
+            if (str == "0") { row.set(idx, false); }
+            if (str == "1") { row.set(idx, true); }
+            // EMPTY
         }
 
         /**
@@ -156,5 +162,5 @@ class BoolProducer: public ValueProducer {
         virtual bool canProduce(const std::string& str) override { return str == "0" || str == "1"; }
 
         /** This class produces bool values */
-        ValueType producedType() const override { return BOOL; }
+        ColumnType producedType() const override { return BOOL; }
 };
