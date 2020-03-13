@@ -7,7 +7,8 @@ union Element {
     int i;
     float f;
     bool b;
-    class ServerClientInfo* s;
+    class String* s;
+    class Column* c;
 };
 
 /**
@@ -41,7 +42,7 @@ public:
             delete[] _storage[i];
         }
 
-        delete _storage;
+        delete [] _storage;
     }
 
     /**

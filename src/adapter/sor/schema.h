@@ -81,7 +81,7 @@ class SchemaBuilder {
             DataFrame* dataFrame = new DataFrame(schema);
 
             while ((read = getline(&line, &length, file)) && read != EOF && (readEnd == -1 || currentPos + read <= readEnd)) {
-                std::vector<std::string> tokens = lineParser.parseTokens(line, schema.length());
+                std::vector<std::string> tokens = lineParser.parseTokens(line, schema.width());
 
                 valueFactory.populateRow(schema, tokens, row);
                 dataFrame->add_row(row);

@@ -21,12 +21,13 @@ class ValueFactory {
          * Returns the index of the producer that produces the given type in orderedProducers
          * @param type The type of producer to return the index for
          */
-        inline int indexForColumnType(char type) const {
+        inline size_t indexForColumnType(char type) const {
             switch (type) {
                 case STRING: return 0;
                 case INT: return 1;
                 case FLOAT: return 2;
                 case BOOL: return 3;
+                default: return -1;
             }
         }
 
@@ -76,7 +77,7 @@ class ValueFactory {
         void populateRow(Schema& schema, const std::vector<std::string>& tokens, Row& row) const {
             if (tokens.empty()) { return; }
 
-            for (int i = 0; i < schema.length(); i++) {
+            for (int i = 0; i < schema.width(); i++) {
                 char type = schema.col_type(i);
                 if (i < tokens.size()) {
                     orderedProducers[indexForColumnType(type)]->produce(tokens[i], row, i);

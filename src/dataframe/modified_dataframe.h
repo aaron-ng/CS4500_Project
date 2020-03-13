@@ -5,7 +5,7 @@
 
 #include "column_type.h"
 #include "object.h"
-#include "element_column.h"
+#include "../element_column.h"
 #include "string.h"
 
 class IntColumn;

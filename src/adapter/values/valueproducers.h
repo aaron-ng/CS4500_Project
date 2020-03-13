@@ -21,7 +21,7 @@ class StringProducer: public ValueProducer {
 
             if (!str.empty()) {
                 if (strHasQuotes(str)) {
-                    string =  new String(str.substr(1, str.length() - 2).c_str());
+                    string = new String(str.substr(1, str.length() - 2).c_str());
                 } else if (str.find(' ') == std::string::npos) {
                     string = new String(str.c_str());
                 } else {
@@ -29,7 +29,7 @@ class StringProducer: public ValueProducer {
                 }
             }
 
-            if (string) { row.set(idx, string); }
+            row.set(idx, string);
         }
 
         /**
