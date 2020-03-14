@@ -41,6 +41,7 @@ add_subdirectory(${CMAKE_CURRENT_BINARY_DIR}/googletest-src
         )
 
 add_executable(main src/main.cpp)
+add_executable(test test/test.cpp)
 
 # add_executable(personal_test_suite personal_test_suite.cpp)
 # target_link_libraries(personal_test_suite gtest)
