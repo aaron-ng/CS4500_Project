@@ -9,6 +9,7 @@ union Element {
     bool b;
     class String* s;
     class Column* c;
+    class ServerClientInfo* cI;
 };
 
 /**

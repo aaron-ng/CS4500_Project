@@ -78,7 +78,7 @@ class Server {
 
                     // Notify all of the other clients a new client has connected
                     ClientIdentification newIdentification(handshake.port, handshake.ip);
-                    _clients.grow()->s = new ServerClientInfo(newIdentification, newConnection);
+                    _clients.grow()->cI = new ServerClientInfo(newIdentification, newConnection);
                     _notifyClients();
                 }
 
@@ -95,7 +95,7 @@ class Server {
         void _sendTeardownToClients() {
             Teardown teardown;
             for (size_t i = 0; i < _clients.size(); i++) {
-                Socket* socket = _clients.get(i)->s->socket;
+                Socket* socket = _clients.get(i)->cI->socket;
                 socket->sendData(teardown);
                 socket->closeSocket();
             }
@@ -107,12 +107,12 @@ class Server {
         void _notifyClients() {
             ClientIdentification* clientIdentification = new ClientIdentification[_clients.size()];
             for (size_t i = 0; i < _clients.size(); i++) {
-                clientIdentification[i] = _clients.get(i)->s->identification;
+                clientIdentification[i] = _clients.get(i)->cI->identification;
             }
 
             ClientInformation info(_clients.size(), clientIdentification);
             for (size_t i = 0; i < _clients.size(); i++) {
-                _clients.get(i)->s->socket->sendData(info);
+                _clients.get(i)->cI->socket->sendData(info);
             }
         }
 
