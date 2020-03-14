@@ -1,8 +1,8 @@
 #include <gtest/gtest.h>
 
-#include "../column_type.h"
-#include "../element_column.h"
-#include "dataframe.h"
+#include "../../src/element_column.h"
+#include "../../src/dataframe/column_type.h"
+#include "../../src/dataframe/modified_dataframe.h"
 
 #define GT_TRUE(a)   ASSERT_EQ((a),true)
 #define GT_FALSE(a)  ASSERT_EQ((a),false)
