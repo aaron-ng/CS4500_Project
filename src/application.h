@@ -1,6 +1,7 @@
 #pragma once
 
 #include <iostream>
+#include "printer.h"
 
 /**
  * An application that is running on 
@@ -29,4 +30,4 @@
         /** The function that is called after the application setup is complete */
         virtual void _run() = 0;
 
-}
+};

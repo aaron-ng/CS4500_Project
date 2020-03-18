@@ -6,9 +6,10 @@
 #include <thread>
 
 #include "column_type.h"
-#include "object.h"
+#include "../object.h"
 #include "../element_column.h"
-#include "string.h"
+#include "../string.h"
+#include "../kvstore.h"
 
 class IntColumn;
 class BoolColumn;
@@ -780,6 +781,181 @@ public:
             if (row != nrows() - 1) { std::cout << std::endl; }
         }
 
+    }
+
+    /**
+         * Creates a new dataframe from one value. The resulting dataframe will have one column
+         * and be stored in the KV store under the given key
+         * @param key The key to store the dataframe under
+         * @param kv The key value store to put the dataframe in
+         * @param value The value to put into the dataframe
+         */
+    static DataFrame* fromScalar(Key* key, KVStore* kv, int value) {
+        const char charSchema[2] = {INT, '\0'};
+        Schema schema(charSchema);
+        DataFrame* dataFrame = new DataFrame(schema);
+        Row row(schema);
+        row.set(0, value);
+
+        dataFrame->add_row(row);
+        kv->put(dataFrame, *key);
+
+        return dataFrame;
+    }
+
+    /**
+     * Creates a new dataframe from one value. The resulting dataframe will have one column
+     * and be stored in the KV store under the given key
+     * @param key The key to store the dataframe under
+     * @param kv The key value store to put the dataframe in
+     * @param value The value to put into the dataframe
+     */
+    static DataFrame* fromScalar(Key* key, KVStore* kv, bool value) {
+        const char charSchema[2] = {BOOL, '\0'};
+        Schema schema(charSchema);
+        DataFrame* dataFrame = new DataFrame(schema);
+        Row row(schema);
+        row.set(0, value);
+
+        dataFrame->add_row(row);
+        kv->put(dataFrame, *key);
+
+        return dataFrame;
+    }
+
+    /**
+     * Creates a new dataframe from one value. The resulting dataframe will have one column
+     * and be stored in the KV store under the given key
+     * @param key The key to store the dataframe under
+     * @param kv The key value store to put the dataframe in
+     * @param value The value to put into the dataframe
+     */
+    static DataFrame* fromScalar(Key* key, KVStore* kv, float value) {
+        const char charSchema[2] = {FLOAT, '\0'};
+        Schema schema(charSchema);
+        DataFrame* dataFrame = new DataFrame(schema);
+        Row row(schema);
+        row.set(0, value);
+
+        dataFrame->add_row(row);
+        kv->put(dataFrame, *key);
+
+        return dataFrame;
+    }
+
+    /**
+     * Creates a new dataframe from one value. The resulting dataframe will have one column
+     * and be stored in the KV store under the given key
+     * @param key The key to store the dataframe under
+     * @param kv The key value store to put the dataframe in
+     * @param value The value to put into the dataframe
+     */
+    static DataFrame* fromScalar(Key* key, KVStore* kv, String* value) {
+        const char charSchema[2] = {STRING, '\0'};
+        Schema schema(charSchema);
+        DataFrame* dataFrame = new DataFrame(schema);
+        Row row(schema);
+        row.set(0, value);
+
+        dataFrame->add_row(row);
+        kv->put(dataFrame, *key);
+
+        return dataFrame;
+    }
+
+    /**
+     * Creates a new dataframe from an array of values. The resulting dataframe will have one column
+     * and be stored in the KV store under the given key
+     * @param key The key to store the dataframe under
+     * @param kv The key value store to put the dataframe in
+     * @param count The number of items in values
+     * @param values The values to put into the dataframe
+     */
+    static DataFrame* fromArray(Key* key, KVStore* kv, size_t count, int* values) {
+        const char charSchema[2] = {INT, '\0'};
+        Schema schema(charSchema);
+        DataFrame* dataFrame = new DataFrame(schema);
+        Row row(schema);
+
+        for(int i = 0; i < count; i++) {
+            row.set(0, values[i]);
+            dataFrame->add_row(row);
+
+        }
+        kv->put(dataFrame, *key);
+
+        return dataFrame;
+    }
+
+    /**
+     * Creates a new dataframe from an array of values. The resulting dataframe will have one column
+     * and be stored in the KV store under the given key
+     * @param key The key to store the dataframe under
+     * @param kv The key value store to put the dataframe in
+     * @param count The number of items in values
+     * @param values The values to put into the dataframe
+     */
+    static DataFrame* fromArray(Key* key, KVStore* kv, size_t count, bool* values) {
+        const char charSchema[2] = {BOOL, '\0'};
+        Schema schema(charSchema);
+        DataFrame* dataFrame = new DataFrame(schema);
+        Row row(schema);
+
+        for(int i = 0; i < count; i++) {
+            row.set(0, values[i]);
+            dataFrame->add_row(row);
+
+        }
+        kv->put(dataFrame, *key);
+
+        return dataFrame;
+    }
+
+    /**
+     * Creates a new dataframe from an array of values. The resulting dataframe will have one column
+     * and be stored in the KV store under the given key
+     * @param key The key to store the dataframe under
+     * @param kv The key value store to put the dataframe in
+     * @param count The number of items in values
+     * @param values The values to put into the dataframe
+     */
+    static DataFrame* fromArray(Key* key, KVStore* kv, size_t count, float* values) {
+        const char charSchema[2] = {FLOAT, '\0'};
+        Schema schema(charSchema);
+        DataFrame* dataFrame = new DataFrame(schema);
+        Row row(schema);
+
+        for(int i = 0; i < count; i++) {
+            row.set(0, values[i]);
+            dataFrame->add_row(row);
+        }
+        kv->put(dataFrame, *key);
+
+        return dataFrame;
+    }
+
+    /**
+     * Creates a new dataframe from an array of values. The resulting dataframe will have one column
+     * and be stored in the KV store under the given key
+     * @param key The key to store the dataframe under
+     * @param kv The key value store to put the dataframe in
+     * @param count The number of items in values
+     * @param values The values to put into the dataframe
+     */
+    static DataFrame* fromArray(Key* key, KVStore* kv, size_t count, String** values) {
+        const char charSchema[2] = {STRING, '\0'};
+        Schema schema(charSchema);
+        DataFrame* dataFrame = new DataFrame(schema);
+        Row row(schema);
+
+        for(int i = 0; i < count; i++) {
+            row.set(0, values[i]);
+            dataFrame->add_row(row);
+
+        }
+        kv->put(dataFrame, *key);
+
+        return dataFrame;
     }
 
     /**

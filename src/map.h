@@ -5,9 +5,9 @@
 #ifndef MAP_H
 #define MAP_H
 
-#pragma once;
-#include "../cs4500-assignment1-array/object.h"
-#include "../cs4500-assignment1-array/array.h"
+#pragma once
+#include "object.h"
+#include "array.h"
 
 /**
  * An entry in a map

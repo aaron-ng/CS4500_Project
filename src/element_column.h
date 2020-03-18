@@ -10,6 +10,7 @@ union Element {
     class String* s;
     class Column* c;
     class ServerClientInfo* cI;
+    void* ptr;
 };
 
 /**

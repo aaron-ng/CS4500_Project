@@ -6,21 +6,7 @@
 
 #include "string.h"
 #include "object.h"
-
-/** An element that can store any basic primitive, float, int, bool or pointers */
-union Element {
-    /** The float value of the element */
-    float f;
-
-    /** The int value of the element */
-    int i;
-
-    /** The bool value of the element */
-    bool b;
-
-    /** The mem addr value of the element */
-    void* ptr;
-};
+#include "element_column.h"
 
 /**
  * A resizable array that is composed of Elements
@@ -684,7 +670,7 @@ public:
     virtual float set(size_t i, float o) {
         Element element;
         element.f = o;
-        _rawArray.set(i, element);
+        return _rawArray.set(i, element).f;
     }
 
     /**
@@ -821,7 +807,7 @@ public:
     virtual bool set(size_t i, bool o) {
         Element element;
         element.b = o;
-        _rawArray.set(i, element);
+        return _rawArray.set(i, element).b;
     }
 
     /**
