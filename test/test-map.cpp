@@ -140,9 +140,47 @@ void test7() {
     OK("9");
 }
 
+void mapStressTest() {
+    Map* h1 = new Map();
 
+    char buffer[100];
+    for (int i = 0; i < _stressTestVal; i++) {
+        sprintf(buffer, "test%i", i);
+        String *keyStr = new String(buffer);
 
+        sprintf(buffer, "test%i", i);
+        String *valStr = new String(buffer);
 
+        // Test put
+        h1->put(keyStr, valStr);
+    }
+
+    t_true(h1->get_size() == _stressTestVal);
+
+    for (int i = 0; i < _stressTestVal; i++) {
+        sprintf(buffer, "test%i", i);
+        String *keyStr = new String(buffer);
+
+        sprintf(buffer, "test%i", i);
+        String *valStr = new String(buffer);
+
+        // Test contain
+        t_true(h1->contains_key(keyStr));
+
+        // Test get
+        String* getString = dynamic_cast<String*>(h1->get(keyStr));
+        t_true(getString != nullptr);
+        t_true(getString->equals(valStr));
+
+        // Test removeString
+        String* removedString = dynamic_cast<String*>(h1->remove(keyStr));
+        t_false(h1->contains_key(keyStr));
+
+        delete removedString;
+    }
+
+    OK("Stress test complete");
+}
 
 int main() {
     test1();
@@ -152,5 +190,6 @@ int main() {
     test5();
     test6();
     test7();
+	mapStressTest();
     return 0;
 }

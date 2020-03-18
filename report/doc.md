@@ -146,7 +146,7 @@ class DataFrame: Codable {
          * @param kv The key value store to put the dataframe in
          * @param value The value to put into the dataframe
          */
-        static void fromScalar(const Key& key, KVStore* kv, int value);
+        static Dataframe* fromScalar(const Key& key, KVStore* kv, int value);
 
         /**
          * Creates a new dataframe from one value. The resulting dataframe will have one column
@@ -155,7 +155,7 @@ class DataFrame: Codable {
          * @param kv The key value store to put the dataframe in
          * @param value The value to put into the dataframe
          */
-        static void fromScalar(const Key& key, KVStore* kv, bool value);
+        static Dataframe* fromScalar(const Key& key, KVStore* kv, bool value);
         
         /**
          * Creates a new dataframe from one value. The resulting dataframe will have one column
@@ -164,7 +164,7 @@ class DataFrame: Codable {
          * @param kv The key value store to put the dataframe in
          * @param value The value to put into the dataframe
          */
-        static void fromScalar(const Key& key, KVStore* kv, float value);
+        static Dataframe* fromScalar(const Key& key, KVStore* kv, float value);
         
         /**
          * Creates a new dataframe from one value. The resulting dataframe will have one column
@@ -173,17 +173,7 @@ class DataFrame: Codable {
          * @param kv The key value store to put the dataframe in
          * @param value The value to put into the dataframe
          */
-        static void fromScalar(const Key& key, KVStore* kv, String* value);
-
-        /**
-         * Creates a new dataframe from an array of values. The resulting dataframe will have one column
-         * and be stored in the KV store under the given key
-         * @param key The key to store the dataframe under
-         * @param kv The key value store to put the dataframe in
-         * @param count The number of items in values
-         * @param values The values to put into the dataframe
-         */
-        static void fromScalar(const Key& key, KVStore* kv, size_t count, int* values);
+        static Dataframe* fromScalar(const Key& key, KVStore* kv, String* value);
 
         /**
          * Creates a new dataframe from an array of values. The resulting dataframe will have one column
@@ -193,7 +183,17 @@ class DataFrame: Codable {
          * @param count The number of items in values
          * @param values The values to put into the dataframe
          */
-        static void fromScalar(const Key& key, KVStore* kv, size_t count, bool* values);
+        static Dataframe* fromArray(const Key& key, KVStore* kv, size_t count, int* values);
+
+        /**
+         * Creates a new dataframe from an array of values. The resulting dataframe will have one column
+         * and be stored in the KV store under the given key
+         * @param key The key to store the dataframe under
+         * @param kv The key value store to put the dataframe in
+         * @param count The number of items in values
+         * @param values The values to put into the dataframe
+         */
+        static Dataframe* fromArray(const Key& key, KVStore* kv, size_t count, bool* values);
         
         /**
          * Creates a new dataframe from an array of values. The resulting dataframe will have one column
@@ -203,7 +203,7 @@ class DataFrame: Codable {
          * @param count The number of items in values
          * @param values The values to put into the dataframe
          */
-        static void fromScalar(const Key& key, KVStore* kv, size_t count, float* values);
+        static Dataframe* fromArray(const Key& key, KVStore* kv, size_t count, float* values);
         
         /**
          * Creates a new dataframe from an array of values. The resulting dataframe will have one column
@@ -213,7 +213,7 @@ class DataFrame: Codable {
          * @param count The number of items in values
          * @param values The values to put into the dataframe
          */
-        static void fromScalar(const Key& key, KVStore* kv, size_t count, String** values);
+        static Dataframe* fromArray(const Key& key, KVStore* kv, size_t count, String** values);
 
         /** Return the value at the given column and row. Accessing rows or
          *  columns out of bounds, or request the wrong type is undefined.*/

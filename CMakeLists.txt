@@ -41,7 +41,7 @@ add_subdirectory(${CMAKE_CURRENT_BINARY_DIR}/googletest-src
         )
 
 add_executable(main src/main.cpp)
-add_executable(test test/test.cpp)
+add_executable(map_test test/test-map.cpp)
 add_executable(network_test test/network/network_test.cpp)
 add_executable(personal_test_suite test/dataframe/personal_test_suite.cpp)
 
