@@ -25,14 +25,14 @@ class KVStore {
          * value does not exist, nullptr is returned
          * @param key The key of the dataframe to return  
          */
-        Dataframe* get(const Key& key)
+        DataFrame* get(Key& key)
 
         /**
          * Retrieves the dataframe with the given key from the key value store. If the 
          * value does not exist, this call will wait until it is available
          * @param key The key of the dataframe to return  
          */
-        Dataframe* waitAndGet(const Key& key)
+        DataFrame* waitAndGet(Key& key)
 
         /**
          * Puts the dataframe in the store. If the key references a node that is not 
@@ -40,7 +40,7 @@ class KVStore {
          * @param dataframe The data to store
          * @param key The key of the dataframe in the store 
          */
-        void put(Dataframe* dataframe, const Key& key)
+        void put(DataFrame* dataframe, Key& key)
         
         /**
          * Provides the node identifier of the running application. This is determined
@@ -146,7 +146,7 @@ class DataFrame: Codable {
          * @param kv The key value store to put the dataframe in
          * @param value The value to put into the dataframe
          */
-        static Dataframe* fromScalar(const Key& key, KVStore* kv, int value);
+        static DataFrame* fromScalar(const Key& key, KVStore* kv, int value);
 
         /**
          * Creates a new dataframe from one value. The resulting dataframe will have one column
@@ -155,7 +155,7 @@ class DataFrame: Codable {
          * @param kv The key value store to put the dataframe in
          * @param value The value to put into the dataframe
          */
-        static Dataframe* fromScalar(const Key& key, KVStore* kv, bool value);
+        static DataFrame* fromScalar(const Key& key, KVStore* kv, bool value);
         
         /**
          * Creates a new dataframe from one value. The resulting dataframe will have one column
@@ -164,7 +164,7 @@ class DataFrame: Codable {
          * @param kv The key value store to put the dataframe in
          * @param value The value to put into the dataframe
          */
-        static Dataframe* fromScalar(const Key& key, KVStore* kv, float value);
+        static DataFrame* fromScalar(const Key& key, KVStore* kv, float value);
         
         /**
          * Creates a new dataframe from one value. The resulting dataframe will have one column
@@ -173,17 +173,7 @@ class DataFrame: Codable {
          * @param kv The key value store to put the dataframe in
          * @param value The value to put into the dataframe
          */
-        static Dataframe* fromScalar(const Key& key, KVStore* kv, String* value);
-
-        /**
-         * Creates a new dataframe from an array of values. The resulting dataframe will have one column
-         * and be stored in the KV store under the given key
-         * @param key The key to store the dataframe under
-         * @param kv The key value store to put the dataframe in
-         * @param count The number of items in values
-         * @param values The values to put into the dataframe
-         */
-        static Dataframe* fromArray(const Key& key, KVStore* kv, size_t count, int* values);
+        static DataFrame* fromScalar(const Key& key, KVStore* kv, String* value);
 
         /**
          * Creates a new dataframe from an array of values. The resulting dataframe will have one column
@@ -193,7 +183,17 @@ class DataFrame: Codable {
          * @param count The number of items in values
          * @param values The values to put into the dataframe
          */
-        static Dataframe* fromArray(const Key& key, KVStore* kv, size_t count, bool* values);
+        static DataFrame* fromArray(const Key& key, KVStore* kv, size_t count, int* values);
+
+        /**
+         * Creates a new dataframe from an array of values. The resulting dataframe will have one column
+         * and be stored in the KV store under the given key
+         * @param key The key to store the dataframe under
+         * @param kv The key value store to put the dataframe in
+         * @param count The number of items in values
+         * @param values The values to put into the dataframe
+         */
+        static DataFrame* fromArray(const Key& key, KVStore* kv, size_t count, bool* values);
         
         /**
          * Creates a new dataframe from an array of values. The resulting dataframe will have one column
@@ -203,7 +203,7 @@ class DataFrame: Codable {
          * @param count The number of items in values
          * @param values The values to put into the dataframe
          */
-        static Dataframe* fromArray(const Key& key, KVStore* kv, size_t count, float* values);
+        static DataFrame* fromArray(const Key& key, KVStore* kv, size_t count, float* values);
         
         /**
          * Creates a new dataframe from an array of values. The resulting dataframe will have one column
@@ -213,7 +213,7 @@ class DataFrame: Codable {
          * @param count The number of items in values
          * @param values The values to put into the dataframe
          */
-        static Dataframe* fromArray(const Key& key, KVStore* kv, size_t count, String** values);
+        static DataFrame* fromArray(const Key& key, KVStore* kv, size_t count, String** values);
 
         /** Return the value at the given column and row. Accessing rows or
          *  columns out of bounds, or request the wrong type is undefined.*/
