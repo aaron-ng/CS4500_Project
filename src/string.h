@@ -82,6 +82,23 @@ public:
             hash = cstr_[i] + (hash << 6) + (hash << 16) - hash;
         return hash;
     }
+
+    /**
+     * Concatenate the value of this String to the value of the given String.
+     * Return the concatenated char array wrapped in a new String object.
+     * @arg s: the String you want to concatenate.
+    */
+    virtual String* concat(String *s) {
+        char* str = new char[size_ + s->size_ + 1];
+        strcpy(str, cstr_);
+        strcat(str, s->cstr_);
+
+        String* newStr = new String(str);
+        delete [] str;
+
+        return newStr;
+    }
+
  };
 
 /** A string buffer builds a string from various pieces.

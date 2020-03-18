@@ -140,6 +140,8 @@ void test7() {
     OK("9");
 }
 
+static const int _stressTestVal = 10000;
+
 void mapStressTest() {
     Map* h1 = new Map();
 

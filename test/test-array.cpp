@@ -1,6 +1,6 @@
-#include "object.h"  // Your file with the CwC declaration of Object
-#include "string.h"  // Your file with the String class
-#include "array.h"
+#include "../src/object.h"  // Your file with the CwC declaration of Object
+#include "../src/string.h"  // Your file with the String class
+#include "../src/array.h"
 #include <stdio.h>
  
 void FAIL() {   exit(1);    }
