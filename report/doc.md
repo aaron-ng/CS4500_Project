@@ -11,337 +11,41 @@ The EU2 system is distributed system that will be used for large scale data anal
 
 ##  Classes
 
-```
-/**
- * The distributed key value store. This will connect to the central rendezvous server
- * to register it in the constructor. 
- * Created by ng.h@husky.neu.edu and pazol.l@husky.neu.edu 
- */
-class KVStore {
-    public:
-    
-        /**
-         * Retrieves the dataframe with the given key from the key value store. If the 
-         * value does not exist, nullptr is returned
-         * @param key The key of the dataframe to return  
-         */
-        DataFrame* get(Key& key)
+`KVStore`
+- Abstracts away the distributed nature of the key store
+- Manages concurrency and networking 
+- Allows for putting and getting data frames
 
-        /**
-         * Retrieves the dataframe with the given key from the key value store. If the 
-         * value does not exist, this call will wait until it is available
-         * @param key The key of the dataframe to return  
-         */
-        DataFrame* waitAndGet(Key& key)
+`Key`
+- Stores the home node and the name of an entry in the distributed key store
 
-        /**
-         * Puts the dataframe in the store. If the key references a node that is not 
-         * this machine, it is sent across the network.
-         * @param dataframe The data to store
-         * @param key The key of the dataframe in the store 
-         */
-        void put(DataFrame* dataframe, Key& key)
-        
-        /**
-         * Provides the node identifier of the running application. This is determined
-         * by the rendezvous server
-         */
-        size_t this_node() const 
-}
+`Printer`
+- Provides some syntactic sugar for easier printing to standard out
 
-/**
- * A key that contains a name and a home node 
- * Created by ng.h@husky.neu.edu and pazol.l@husky.neu.edu 
- */
-class Key {
-    public:
-    
-        /**
-         * Creates a new key
-         * @param name The name of the key 
-         * @param node the home node of the key
-         */
-        Key(const char* name, size_t node)
+`Application`
+- Manages lifecyle of the KVStore
+- Provides a 'main' like run method
 
-        /** Provides the name of the key */
-        const char* getName() const 
-        
-        /** Provides the home node of the key */
-        size_t getNode() const
+`Dataframe`
+- Stores columns of data
+- Has convience methods to create a dataframe from a single value or an array of values 
+- Ensures that columns adhere to a schema
+- Allows reading / writing data 
 
-}
+`RemoteClient`
+- An abstraction for sending and recieving messages from another node
+- Allows sending and recieving messages
+- Handles serialization but not deserialization
 
-/** 
- * Prints log lines to something
- * Created by ng.h@husky.neu.edu and pazol.l@husky.neu.edu
- */
-class Printer {
+`Client`
+- Rendezvous with the central server
+- Enables staying up to date with the currently connected nodes
+- Allows for sending messages to other clients
+- Allows for recieving messages from other clients
 
-    /** Prints the string */
-    Printer& p(const char* contents);
-
-    /** Prints the int */
-    Printer& p(int contents);
-    
-    /** Prints the float */
-    Printer& p(float contents);
-
-    /** Prints the bool */
-    Printer& p(bool contents);
-    
-    /** Prints the string with a newline after */
-    Printer& pl(const char* contents);
-
-    /** Prints the int with a newline after */
-    Printer& pl(int contents);
-    
-    /** Prints the float with a newline after */
-    Printer& pl(float contents);
-
-    /** Prints the bool with a newline after */
-    Printer& pl(bool contents);
-
-}
-
-/**
- * An application that is running on 
- * Created by ng.h@husky.neu.edu and pazol.l@husky.neu.edu 
- */
- class Application: public Printer {
-    public:
-
-        /** The distributed key store that this application is connected to */
-        KVStore kv;
-
-        /**
-         * Creates a new application that runs on a distributed key store. 
-         * This constructor will rendezvous with the central server.
-         * @param idx An unused parameter so far. The client ID will be assigned by the server,
-         * but the example code supplies this param
-         */
-        Application(size_t idx)
-
-        /**
-         * Provides the node identifier of the running application. This is determined
-         * by the rendezvous server
-         */
-        size_t this_node() const 
-
-        /** The function that is called after the application setup is complete */
-        virtual void _run()
-
-}
-
-/**
- * A frame that can hold columns of data
- * Created by ng.h@husky.neu.edu and pazol.l@husky.neu.edu
- */
-class DataFrame: Codable {
-    public:
-    
-        /**
-         * Creates a new dataframe from one value. The resulting dataframe will have one column
-         * and be stored in the KV store under the given key
-         * @param key The key to store the dataframe under
-         * @param kv The key value store to put the dataframe in
-         * @param value The value to put into the dataframe
-         */
-        static DataFrame* fromScalar(Key* key, KVStore* kv, int value);
-
-        /**
-         * Creates a new dataframe from one value. The resulting dataframe will have one column
-         * and be stored in the KV store under the given key
-         * @param key The key to store the dataframe under
-         * @param kv The key value store to put the dataframe in
-         * @param value The value to put into the dataframe
-         */
-        static DataFrame* fromScalar(Key* key, KVStore* kv, bool value);
-        
-        /**
-         * Creates a new dataframe from one value. The resulting dataframe will have one column
-         * and be stored in the KV store under the given key
-         * @param key The key to store the dataframe under
-         * @param kv The key value store to put the dataframe in
-         * @param value The value to put into the dataframe
-         */
-        static DataFrame* fromScalar(Key* key, KVStore* kv, float value);
-        
-        /**
-         * Creates a new dataframe from one value. The resulting dataframe will have one column
-         * and be stored in the KV store under the given key
-         * @param key The key to store the dataframe under
-         * @param kv The key value store to put the dataframe in
-         * @param value The value to put into the dataframe
-         */
-        static DataFrame* fromScalar(Key* key, KVStore* kv, String* value);
-
-        /**
-         * Creates a new dataframe from an array of values. The resulting dataframe will have one column
-         * and be stored in the KV store under the given key
-         * @param key The key to store the dataframe under
-         * @param kv The key value store to put the dataframe in
-         * @param count The number of items in values
-         * @param values The values to put into the dataframe
-         */
-        static DataFrame* fromArray(Key* key, KVStore* kv, size_t count, int* values);
-
-        /**
-         * Creates a new dataframe from an array of values. The resulting dataframe will have one column
-         * and be stored in the KV store under the given key
-         * @param key The key to store the dataframe under
-         * @param kv The key value store to put the dataframe in
-         * @param count The number of items in values
-         * @param values The values to put into the dataframe
-         */
-        static DataFrame* fromArray(Key* key, KVStore* kv, size_t count, bool* values);
-        
-        /**
-         * Creates a new dataframe from an array of values. The resulting dataframe will have one column
-         * and be stored in the KV store under the given key
-         * @param key The key to store the dataframe under
-         * @param kv The key value store to put the dataframe in
-         * @param count The number of items in values
-         * @param values The values to put into the dataframe
-         */
-        static DataFrame* fromArray(Key* key, KVStore* kv, size_t count, float* values);
-        
-        /**
-         * Creates a new dataframe from an array of values. The resulting dataframe will have one column
-         * and be stored in the KV store under the given key
-         * @param key The key to store the dataframe under
-         * @param kv The key value store to put the dataframe in
-         * @param count The number of items in values
-         * @param values The values to put into the dataframe
-         */
-        static DataFrame* fromArray(Key* key, KVStore* kv, size_t count, String** values);
-
-        /** Return the value at the given column and row. Accessing rows or
-         *  columns out of bounds, or request the wrong type is undefined.*/
-        int get_int(size_t col, size_t row) 
-        bool get_bool(size_t col, size_t row)
-        float get_float(size_t col, size_t row)
-        String*  get_string(size_t col, size_t row)
-
-}
-
-/**
- * A client that is not running on this machine
- * Written by: pazol.l@husky.neu.edu and ng.h@husky.neu.edu
- */
-class RemoteClient {
-    public:
-
-        /**
-         * Default constructor
-         * @param identification The information for the remote client
-         */
-        RemoteClient(ClientIdentification& identification)
-
-        /**
-         * Constructor for a client that is already connected on a socket
-         * @param socket The socket that the client is connected on
-         */
-        RemoteClient(Socket& socket)
-
-        /**
-         * Sends a message to the remote client
-         * @param message The message to send
-         */
-        void send(Codable& message)
-
-        /**
-         * Recieves a message from the client. This is a blocking operation
-         * @return The message that was sent to this cleint
-         */
-        Message* recieve()
-
-};
-
-/**
- * A client that connects to the central server
- * Written by: pazol.l@husky.neu.edu and ng.h@husky.neu.edu
- */
-class Client {
-    public:
-
-        /**
-         * Default constructor
-         * @param ip The IP that the client is reachable at
-         * @param handler The handler for messages. Owns the handler
-         */
-        Client(in_addr_t ip, uint16_t port, MessageHandler* handler)
-
-        /**
-         * Connects to the central server at the given IP. This will connect, register with the server and start
-         * listening for messages from other clients until the server initiates teardown
-         * @param serverIP The IP which the server can be reached on
-         * @param serverPort The port that the server can be reached on
-         */
-        void connect(in_addr_t serverIP, uint16_t serverPort) 
-
-        /**
-         * Determines if the client is listening to messages and connected to the central server
-         */
-        bool connected() 
-
-        /**
-         * Reads data from the central server if there is any. If the server tears the client down,
-         * all of the open sockets are closed. If there is an incoming connection, data is read and the
-         * message handler is used to generate a response
-         */
-        void poll()
-
-        /**
-         * Sends a message to a client that is at clientInformation()[clientId]
-         * @param clientId The index in clientInformation() to send the message to
-         * @param data The data to send to the client
-         */
-        void send(size_t clientId, Codable& data)
-
-        /**
-         * Provides the information of all of the clients connected to the central server, including this one
-         */
-        const ClientInformation& clientInformation()
-
-};
-
-/**
- * The central registration server
- * Written by: pazol.l@husky.neu.edu and ng.h@husky.neu.edu
- */
-class Server {
-    public:
-
-        /**
-         * Creates a new central listening server
-         * @param serverIP The IP to bind the server to
-         * @param serverPort The port to bind the server to
-         */
-        Server(in_addr_t serverIP, uint16_t serverPort)
-
-        /** Starts listening to incoming connections and serving the list of connected clients to any incoming clients */
-        void run()
-
-        /** Closes the server */
-        void close()
-
-};
-
-/** 
- * A class that will build a Sor schema from a file 
- * Written by: pazol.l@husky.neu.edu and ng.h@husky.neu.edu
- */
-class Schema {
-    public:
-    
-        /**
-         * Loads a dataframe from a file. The first 500 lines will be used to determine the schema
-         * @param file
-         * The file to read from 
-         */ 
-        Dataframe* build(FILE* file);
-
-```
+`Server`
+- Central rendezvous server for nodes
+- Accepts incoming connections and broadcasts IPs and ports of currently connected clients
 
 # Use cases
 
