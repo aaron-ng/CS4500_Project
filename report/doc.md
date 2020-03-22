@@ -62,32 +62,24 @@ public:
   UseCases(size_t idx): Application(idx) {}
  
   void run_() override {
-    switch(this_node()) {
-    case 0:   producer();     break;
-    case 1:   counter();      break;
-    case 2:   summarizer();
-   }
+    // Use the current client ID to choose a task
   }
  
   void producer() {
-    double vals[SZ];
-    double sum = 0;
-    for (size_t i = 0; i < SZ; ++i) { sum += vals[i] = i; }
-    
+    // Create a dataframe and write it to the store    
     DataFrame::fromArray(&main, &kv, SZ, vals);
     DataFrame::fromScalar(&check, &kv, sum);
   }
  
   void counter() {
     DataFrame* v = kv.waitAndGet(main);
-    size_t sum = 0;
-    for (size_t i = 0; i < SZ; ++i) { sum += v->get_double(0,i); }
     
-    p("The sum is  ").pln(sum);
+    // Do something with the dataframe and write it back to the key store
     DataFrame::fromScalar(&verify, &kv, sum);
   }
  
   void summarizer() {
+    // Wait until operation is complete and make sure that it was correct
     DataFrame* result = kv.waitAndGet(verify);
     DataFrame* expected = kv.waitAndGet(check);
     
@@ -95,71 +87,28 @@ public:
   }
 };
 
-// Example client-server communication
 
-Server server(inet_addr(argv[2]), SERVER_PORT);
-    std::thread serverThread(&Server::run, std::ref(server));
+Here is an example of a client connecting to a running server
 
-    std::cout << "Hit enter to stop server..." << std::endl;
-
-    if (!lastsForever) {
-        char c;
-        std::cin.read(&c, 1);
-        server.close();
-    } else { while(true) {} }
-
-    serverThread.join();
-
-Here is an example of a client that will say hello to the newest connected client (including itself)
-
-in_addr_t ip = inet_addr(argv[2]);
+    in_addr_t ip = inet_addr(argv[2]);
     Client c(ip, port, new Echo());
 
+    // Connects to the server running on localhost
     c.connect(inet_addr("127.0.0.1"), SERVER_PORT);
 
     int connectedClients = 0;
     while (c.connected()) {
         c.poll();
 
-        int newCount = c.clientInformation().numClients;
-        if (newCount != connectedClients) {
-            std::cout << newCount << " connected clients" << std::endl;
-            connectedClients = newCount;
-
-            // Send the last (assumed newest client) a hello
-            const char* hello = "Hello there new guy";
-            Data data(hello, strlen(hello) + 1);
-            c.send(connectedClients - 1, data);
-        }
+        // IP and port of all of the connected clients
+        c.clientInformation();
     }
 
     std::cout << "Received teardown from server" << std::endl;
 
-class Echo: public MessageHandler {
-    public:
-
-        virtual void handleMessage(class Message* message, RemoteClient& client) {
-            Deserializer deserializer = message->deserializer();
-
-            Data data;
-            data.deserialize(deserializer);
-            std::cout << data.getData() << std::endl;
-        }
-
-};
-
-// SOR adapter example
-
-FILE* file = fopen("./test.sor", "r");
-if (!file) {
-    std::cerr << "Could not open file\n";
-    return -1;
-}
-
-Schema builder;
-Dataframe* result = builder.build(file);
-
 ```
+
+SOR files can be loaded by using an instance of the `Schema` class and using the build method.
 
 # Open questions
 
