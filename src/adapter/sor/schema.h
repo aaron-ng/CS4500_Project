@@ -41,7 +41,7 @@ class SchemaBuilder {
                     std::vector<std::string> tokenizedLine = lineParser.parseTokens(line, types.size());
                     std::vector<ColumnType> lineTypes = valueFactory.getSchema(tokenizedLine);
                     for (size_t i = 0; i < lineTypes.size(); i++) {
-                        if (i < types.size()) { types[i] = std::max(types[i], lineTypes[i]); }
+                        if (i < types.size()) { types[i] = max(types[i], lineTypes[i]); }
                         else { types.push_back(lineTypes[i]); }
                     }
                 }

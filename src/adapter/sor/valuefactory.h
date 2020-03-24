@@ -8,6 +8,7 @@
 
 /**
  * A class that will build values from strings from an SoR file between delimiters
+ * Written by: pazol.l@husky.neu.edu and ng.h@husky.neu.edu
  */
 class ValueFactory {
     private:
