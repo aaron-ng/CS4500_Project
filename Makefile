@@ -6,7 +6,7 @@ test: compile
 	./build/main
 
 valgrind: compile
-	valgrind ./build/main
+	valgrind --leak-check=yes ./build/main
 
 clean:
 	rm -rf -f build
