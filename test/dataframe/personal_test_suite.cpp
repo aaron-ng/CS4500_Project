@@ -3,6 +3,7 @@
 #include "../../src/element_column.h"
 #include "../../src/dataframe/column_type.h"
 #include "../../src/dataframe/modified_dataframe.h"
+#include "../../src/utils/dataframe_description.h"
 
 #define GT_TRUE(a)   ASSERT_EQ((a),true)
 #define GT_FALSE(a)  ASSERT_EQ((a),false)

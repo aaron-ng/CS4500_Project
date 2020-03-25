@@ -24,6 +24,11 @@ class Key: public Object {
             return _name->c_str();
         }
 
+        /** Provides the name of the key as a string */
+        String* getNameAsString() const {
+            return _name;
+        }
+
         /** Provides the home node of the key */
         size_t getNode() const {
             return _node;

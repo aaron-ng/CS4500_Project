@@ -9,7 +9,7 @@
  * Describes the location of one column and its type in the distributed value store
  * Written by: pazol.l@husky.neu.edu and ng.h@husky.neu.edu
  */
-class ColumnDescription: public Codable {
+class ColumnDescription: public Object {
     public:
 
         /** The location of the data for the column */
@@ -51,7 +51,7 @@ class ColumnDescription: public Codable {
  * Contains the description of a dataframe, where to find all of the columns and what the schema is
  * Written by: pazol.l@husky.neu.edu and ng.h@husky.neu.edu
  */
-class DataframeDescription: public Codable {
+class DataframeDescription: public Object, public Codable {
     public:
 
         /** The schema for the dataframe in string format. Owns this string */

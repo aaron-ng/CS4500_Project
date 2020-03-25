@@ -40,7 +40,7 @@ add_subdirectory(${CMAKE_CURRENT_BINARY_DIR}/googletest-src
         EXCLUDE_FROM_ALL
         )
 
-add_executable(main src/main.cpp)
+add_executable(main src/main.cpp src/kvstore/kvstore.cpp)
 add_executable(map_test test/test-map.cpp)
 add_executable(array_test test/test-array.cpp)
 add_executable(network_test test/network/network_test.cpp)

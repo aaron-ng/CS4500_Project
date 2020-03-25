@@ -3,6 +3,7 @@
 #include <netinet/in.h>
 #include "../string.h"
 #include "../object.h"
+#include "../element_column.h"
 #include "example_classes.h"
 
 /**
@@ -65,6 +66,16 @@ class Serializer {
          */
         char* getBuffer() {
             return _buffer;
+        }
+
+        /**
+         * Returns a copy of the buffer
+         * @return The buffer
+         */
+        char* getUnownedBuffer() {
+            char* buffer = new char[_writtenBytes];
+            memcpy(buffer, _buffer, sizeof(char) * _writtenBytes);
+            return buffer;
         }
 
         /**
@@ -145,6 +156,15 @@ class Serializer {
         */
         void write(double data) {
             _write(&data, sizeof(double));
+        }
+
+        /**
+        * Public write method that serializes an Element. It must be noted that sometimes an element
+        * can be interpreted as a pointer. A deserialized element should never be interpreted as a pointer.
+        * @param data an double object
+        */
+        void write(Element data) {
+            _write(&data, sizeof(Element));
         }
 
         /**
@@ -354,6 +374,17 @@ class Deserializer {
         double read_double() {
             double* data = (double*)(_buffer + _position);
             _deserialize(sizeof(double));
+
+            return *data;
+        }
+
+        /**
+         * Reads an Element. It must be noted that sometimes an element
+         * can be interpreted as a pointer. A deserialized element should never be interpreted as a pointer.
+         */
+        Element read_element() {
+            Element* data = (Element*)(_buffer + _position);
+            _deserialize(sizeof(Element));
 
             return *data;
         }

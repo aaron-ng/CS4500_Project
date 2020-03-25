@@ -30,25 +30,25 @@ class Printer {
         }
         
         /** Prints the string with a newline after */
-        virtual Printer& pl(const char* contents) { 
+        virtual Printer& pln(const char* contents) {
             std::cout << contents << std::endl;
             return *this; 
         }
 
         /** Prints the int with a newline after */
-        virtual Printer& pl(int contents) { 
+        virtual Printer& pln(int contents) {
             std::cout << contents << std::endl;
             return *this; 
         }
         
         /** Prints the float with a newline after */
-        virtual Printer& pl(float contents) { 
+        virtual Printer& pln(float contents) {
             std::cout << contents << std::endl;
             return *this; 
         }
 
         /** Prints the bool with a newline after */
-        virtual Printer& pl(bool contents) { 
+        virtual Printer& pln(bool contents) {
             std::cout << contents << std::endl;
             return *this; 
         }

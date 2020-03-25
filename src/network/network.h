@@ -245,7 +245,7 @@ class MessageHandler {
  * @param ip The ip to print
  * @param buffer The buffer to write the string into
  */
-void printIP(uint32_t ip, char* buffer) {
+inline void printIP(uint32_t ip, char* buffer) {
     unsigned char bytes[4];
     bytes[0] = ip & 0x000000FF;
     bytes[1] = (ip & 0x0000FF00) >> 8;

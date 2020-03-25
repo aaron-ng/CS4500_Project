@@ -9,7 +9,8 @@
 #include "../object.h"
 #include "../element_column.h"
 #include "../string.h"
-#include "../kvstore.h"
+#include "../kvstore/kvstore.h"
+#include "../network/messages.h"
 
 class IntColumn;
 class BoolColumn;
@@ -24,8 +25,10 @@ class StringColumn;
  * equality.
  * Written by: pazol.l@husky.neu.edu and ng.h@husky.neu.edu
  */
-class Column : public Object {
+class Column : public Object, public Codable {
 public:
+    /** Storage for the actual elements */
+    ElementColumn _elements;
 
     /** Type converters: Return same column under its actual type, or
      *  nullptr if of the wrong type.  */
@@ -47,6 +50,28 @@ public:
     /** Return the type of this column as a char: 'S', 'B', 'I' and 'F'. */
     virtual char get_type() { return '\0'; }
 
+    /**
+     * Writes this column out to a buffer
+     * @param serializer The serializer to write data with
+     */
+    virtual void serialize(Serializer& serializer) {
+        serializer.write((uint64_t)_elements.size());
+        for (size_t i = 0; i < _elements.size(); i++) {
+            serializer.write(*_elements.get(i));
+        }
+    };
+
+    /**
+     * Reads this column from a buffer
+     * @param data The deserializer to read data from
+     */
+    virtual void deserialize(Deserializer& deserializer) {
+        uint64_t count = deserializer.read_uint64();
+        for (size_t i = 0; i < count; i++) {
+            *_elements.grow() = deserializer.read_element();
+        }
+    };
+
 };
 
   /*************************************************************************
@@ -56,8 +81,6 @@ public:
    */
     class IntColumn : public Column {
     public:
-        /** Storage for the actual elements */
-        ElementColumn _elements;
 
         IntColumn() = default;
 
@@ -120,8 +143,6 @@ public:
 */
 class BoolColumn : public Column {
 public:
-    /** Storage for the actual elements */
-    ElementColumn _elements;
 
     BoolColumn() = default;
 
@@ -184,8 +205,6 @@ public:
 */
 class FloatColumn : public Column {
 public:
-    /** Storage for the actual elements */
-    ElementColumn _elements;
 
     FloatColumn() = default;
 
@@ -247,11 +266,8 @@ public:
  * value.
  * Written by: pazol.l@husky.neu.edu and ng.h@husky.neu.edu
  */
-    class StringColumn : public Column {
+class StringColumn : public Column {
     public:
-
-        /** Storage for the actual elements */
-        ElementColumn _elements;
 
         StringColumn() = default;
 
@@ -311,7 +327,44 @@ public:
             }
             return newColumn;
         }
+
+        /**
+         * Writes this column out to a buffer
+         * @param serializer The serializer to write data with
+         */
+        virtual void serialize(Serializer& serializer) {
+            serializer.write((uint64_t)_elements.size());
+            for (size_t i = 0; i < _elements.size(); i++) {
+                serializer.write(_elements.get(i)->s);
+            }
+        };
+
+        /**
+         * Reads this column from a buffer
+         * @param data The deserializer to read data from
+         */
+        virtual void deserialize(Deserializer& deserializer) {
+            uint64_t count = deserializer.read_uint64();
+            for (size_t i = 0; i < count; i++) {
+                _elements.grow()->s = deserializer.read_string();
+            }
+        };
 };
+
+/**
+ * Creates a new column of the given type. If the type is invalid, nullptr is returned
+ * @param type The type of column to create
+ * @return A new column of the given type
+ */
+inline Column* allocateColumnOfType(char type) {
+    switch (type) {
+        case INT: return new IntColumn();
+        case BOOL: return new BoolColumn();
+        case FLOAT: return new FloatColumn();
+        case STRING: return new StringColumn();
+        default: return nullptr;
+    }
+}
 
 /*************************************************************************
 * Schema::
@@ -429,6 +482,9 @@ public:
 
     /** The number of rows */
     size_t length() { return _rowNames.size(); }
+
+    /** Gets all of the types in the schema as a char array */
+    const char* types() const { return _types; }
 };
 
 /*****************************************************************************
@@ -578,7 +634,7 @@ public:
       * empty. */
     DataFrame(Schema& schema) : _schema(schema) {
         for (size_t i = 0; i < _schema.width(); i++) {
-            Column* column = _allocateColumnOfType(_schema.col_type(i));
+            Column* column = allocateColumnOfType(_schema.col_type(i));
             _columns.grow()->c = column;
         }
     }
@@ -613,10 +669,10 @@ public:
 
     /** Return the value at the given column and row. Accessing rows or
      *  columns out of bounds, or request the wrong type is undefined.*/
-    int get_int(size_t col, size_t row) { return _getColumn(col)->as_int()->get(row); }
-    bool get_bool(size_t col, size_t row) { return _getColumn(col)->as_bool()->get(row); }
-    float get_float(size_t col, size_t row) { return _getColumn(col)->as_float()->get(row); }
-    String*  get_string(size_t col, size_t row) { return _getColumn(col)->as_string()->get(row); }
+    int get_int(size_t col, size_t row) { return getColumn(col)->as_int()->get(row); }
+    bool get_bool(size_t col, size_t row) { return getColumn(col)->as_bool()->get(row); }
+    float get_float(size_t col, size_t row) { return getColumn(col)->as_float()->get(row); }
+    String*  get_string(size_t col, size_t row) { return getColumn(col)->as_string()->get(row); }
 
     /** Return the offset of the given column name or -1 if no such col. */
     int get_col(String& col) { return _schema.col_idx(col.c_str()); }
@@ -627,10 +683,10 @@ public:
     /** Set the value at the given column and row to the given value.
       * If the column is not  of the right type or the indices are out of
       * bound, the result is undefined. */
-    void set(size_t col, size_t row, int val) { _getColumn(col)->as_int()->set(row, val); }
-    void set(size_t col, size_t row, bool val) { _getColumn(col)->as_bool()->set(row, val); }
-    void set(size_t col, size_t row, float val) { _getColumn(col)->as_float()->set(row, val); }
-    void set(size_t col, size_t row, String* val) { _getColumn(col)->as_string()->set(row, val); }
+    void set(size_t col, size_t row, int val) { getColumn(col)->as_int()->set(row, val); }
+    void set(size_t col, size_t row, bool val) { getColumn(col)->as_bool()->set(row, val); }
+    void set(size_t col, size_t row, float val) { getColumn(col)->as_float()->set(row, val); }
+    void set(size_t col, size_t row, String* val) { getColumn(col)->as_string()->set(row, val); }
 
     /** Set the fields of the given row object with values from the columns at
       * the given offset.  If the row is not form the same schema as the
@@ -661,7 +717,7 @@ public:
      *  the right schema and be filled with values, otherwise undedined.  */
     void add_row(Row& row) {
         for (size_t i = 0; i < _schema.width(); i++) {
-            Column* col = _getColumn(i);
+            Column* col = getColumn(i);
             switch (_schema.col_type(i)) {
                 case INT:
                     col->as_int()->push_back(row.get_int(i));
@@ -988,7 +1044,7 @@ public:
      * @param row The index of the row in the given column to print
      */
     void _printColumnEntry(size_t col, size_t row) {
-        Column* column = _getColumn(col);
+        Column* column = getColumn(col);
         switch (_schema.col_type(col)) {
             case INT: {
                 IntColumn* intColumn = column->as_int();
@@ -1024,7 +1080,7 @@ public:
 
         // Fill the row with data
         for (size_t i = 0; i < _schema.width(); i++) {
-            Column* col = _getColumn(i);
+            Column* col = getColumn(i);
             switch (_schema.col_type(i)) {
                 case INT: {
                     IntColumn* intColumn = col->as_int();
@@ -1053,24 +1109,10 @@ public:
     }
 
     /**
-     * Provides the column at the given index
+     * Provides the column at the given index. Modifying the column is undefined behavior
      * @param index The index of the given column
      * @return The element in _columns at the given index as a column
      */
-    Column* _getColumn(size_t index) { return _columns.get(index)->c; }
+    Column* getColumn(size_t index) { return _columns.get(index)->c; }
 
-    /**
-     * Creates a new column of the given type. If the type is invalid, nullptr is returned
-     * @param type The type of column to create
-     * @return A new column of the given type
-     */
-    Column* _allocateColumnOfType(char type) {
-        switch (type) {
-            case INT: return new IntColumn();
-            case BOOL: return new BoolColumn();
-            case FLOAT: return new FloatColumn();
-            case STRING: return new StringColumn();
-            default: return nullptr;
-        }
-    }
 };

@@ -10,6 +10,9 @@
  class Application: public Printer {
     public:
 
+         // TODO REMOVE
+         size_t _TEMP;
+
         /** The distributed key store that this application is connected to */
         KVStore kv;
 
@@ -19,13 +22,13 @@
          * @param idx An unused parameter so far. The client ID will be assigned by the server,
          * but the example code supplies this param
          */
-        Application(size_t idx) {}
+        Application(size_t idx) { _TEMP = idx; }
 
         /**
          * Provides the node identifier of the running application. This is determined
          * by the rendezvous server
          */
-        size_t this_node() const { return kv.this_node(); }
+        size_t this_node() const { return _TEMP; /* return kv.this_node(); */ }
 
         /** The function that is called after the application setup is complete */
         virtual void _run() = 0;
