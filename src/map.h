@@ -63,6 +63,10 @@ public:
         for (int i = 0; i < _entrySet.size(); i++) {
             delete _entrySet.get(i);
         }
+
+        for (int i = 0; i < _array.size(); i++) {
+            delete _array.get(i);
+        }
     }
 
 public:
@@ -199,6 +203,9 @@ public:
         
         return value;
     }
+
+    /** Returns all of the entries in the map. These are of type Entry. Modifying this is undefined behavior */
+    ArrayObject& entrySet() { return _entrySet; }
 
     /**
      * @return  a list of values contained in this map

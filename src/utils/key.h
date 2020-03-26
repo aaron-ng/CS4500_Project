@@ -19,6 +19,10 @@ class Key: public Object {
             _node = node;
         }
 
+        ~Key() {
+            delete _name;
+        }
+
         /** Provides the name of the key */
         const char* getName() const {
             return _name->c_str();
