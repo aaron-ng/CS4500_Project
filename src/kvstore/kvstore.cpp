@@ -68,7 +68,7 @@ void KVStore::put(DataFrame* dataframe, Key& key) {
 
         Serializer serializer;
         dataframe->getColumn(i)->serialize(serializer);
-        byteStores[i].put(serializer.getUnownedBuffer(), serializer.getSize(), newKey);
+        byteStores[node].put(serializer.getUnownedBuffer(), serializer.getSize(), newKey);
     }
 
     // TODO use networking to put
