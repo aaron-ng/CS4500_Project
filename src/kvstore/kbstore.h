@@ -34,9 +34,11 @@ class KBStore {
         Map _map;
 
         ~KBStore() {
-            Object** data = _map.values();
+            ArrayObject& entries = _map.entrySet();
             for (size_t i = 0; i < _map.get_size(); i++) {
-                delete data[i];
+                Entry* entry = dynamic_cast<Entry*>(entries.get(i));
+                delete entry->key;
+                delete entry->value;
             }
         }
 

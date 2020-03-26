@@ -437,6 +437,8 @@ public:
         strcpy(newTypes, _types);
         newTypes[_columnNames.size() - 1] = typ;
         newTypes[_columnNames.size()] = '\0';
+
+        delete[] _types;
         _types = newTypes;
     }
 
@@ -846,7 +848,7 @@ public:
          * @param kv The key value store to put the dataframe in
          * @param value The value to put into the dataframe
          */
-    static DataFrame* fromScalar(Key* key, KVStore* kv, int value) {
+    static void fromScalar(Key* key, KVStore* kv, int value) {
         const char charSchema[2] = {INT, '\0'};
         Schema schema(charSchema);
         DataFrame* dataFrame = new DataFrame(schema);
@@ -856,7 +858,7 @@ public:
         dataFrame->add_row(row);
         kv->put(dataFrame, *key);
 
-        return dataFrame;
+        delete dataFrame;
     }
 
     /**
@@ -866,7 +868,7 @@ public:
      * @param kv The key value store to put the dataframe in
      * @param value The value to put into the dataframe
      */
-    static DataFrame* fromScalar(Key* key, KVStore* kv, bool value) {
+    static void fromScalar(Key* key, KVStore* kv, bool value) {
         const char charSchema[2] = {BOOL, '\0'};
         Schema schema(charSchema);
         DataFrame* dataFrame = new DataFrame(schema);
@@ -876,7 +878,7 @@ public:
         dataFrame->add_row(row);
         kv->put(dataFrame, *key);
 
-        return dataFrame;
+        delete dataFrame;
     }
 
     /**
@@ -886,7 +888,7 @@ public:
      * @param kv The key value store to put the dataframe in
      * @param value The value to put into the dataframe
      */
-    static DataFrame* fromScalar(Key* key, KVStore* kv, float value) {
+    static void fromScalar(Key* key, KVStore* kv, float value) {
         const char charSchema[2] = {FLOAT, '\0'};
         Schema schema(charSchema);
         DataFrame* dataFrame = new DataFrame(schema);
@@ -896,7 +898,7 @@ public:
         dataFrame->add_row(row);
         kv->put(dataFrame, *key);
 
-        return dataFrame;
+        delete dataFrame;
     }
 
     /**
@@ -906,7 +908,7 @@ public:
      * @param kv The key value store to put the dataframe in
      * @param value The value to put into the dataframe
      */
-    static DataFrame* fromScalar(Key* key, KVStore* kv, String* value) {
+    static void fromScalar(Key* key, KVStore* kv, String* value) {
         const char charSchema[2] = {STRING, '\0'};
         Schema schema(charSchema);
         DataFrame* dataFrame = new DataFrame(schema);
@@ -916,7 +918,7 @@ public:
         dataFrame->add_row(row);
         kv->put(dataFrame, *key);
 
-        return dataFrame;
+        delete dataFrame;
     }
 
     /**
@@ -927,7 +929,7 @@ public:
      * @param count The number of items in values
      * @param values The values to put into the dataframe
      */
-    static DataFrame* fromArray(Key* key, KVStore* kv, size_t count, int* values) {
+    static void fromArray(Key* key, KVStore* kv, size_t count, int* values) {
         const char charSchema[2] = {INT, '\0'};
         Schema schema(charSchema);
         DataFrame* dataFrame = new DataFrame(schema);
@@ -940,7 +942,7 @@ public:
         }
         kv->put(dataFrame, *key);
 
-        return dataFrame;
+        delete dataFrame;
     }
 
     /**
@@ -951,7 +953,7 @@ public:
      * @param count The number of items in values
      * @param values The values to put into the dataframe
      */
-    static DataFrame* fromArray(Key* key, KVStore* kv, size_t count, bool* values) {
+    static void fromArray(Key* key, KVStore* kv, size_t count, bool* values) {
         const char charSchema[2] = {BOOL, '\0'};
         Schema schema(charSchema);
         DataFrame* dataFrame = new DataFrame(schema);
@@ -964,7 +966,7 @@ public:
         }
         kv->put(dataFrame, *key);
 
-        return dataFrame;
+        delete dataFrame;
     }
 
     /**
@@ -975,7 +977,7 @@ public:
      * @param count The number of items in values
      * @param values The values to put into the dataframe
      */
-    static DataFrame* fromArray(Key* key, KVStore* kv, size_t count, float* values) {
+    static void fromArray(Key* key, KVStore* kv, size_t count, float* values) {
         const char charSchema[2] = {FLOAT, '\0'};
         Schema schema(charSchema);
         DataFrame* dataFrame = new DataFrame(schema);
@@ -987,7 +989,7 @@ public:
         }
         kv->put(dataFrame, *key);
 
-        return dataFrame;
+        delete dataFrame;
     }
 
     /**
@@ -998,7 +1000,7 @@ public:
      * @param count The number of items in values
      * @param values The values to put into the dataframe
      */
-    static DataFrame* fromArray(Key* key, KVStore* kv, size_t count, String** values) {
+    void fromArray(Key* key, KVStore* kv, size_t count, String** values) {
         const char charSchema[2] = {STRING, '\0'};
         Schema schema(charSchema);
         DataFrame* dataFrame = new DataFrame(schema);
@@ -1011,7 +1013,7 @@ public:
         }
         kv->put(dataFrame, *key);
 
-        return dataFrame;
+        delete dataFrame;
     }
 
     /**

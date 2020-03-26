@@ -209,10 +209,27 @@ void testIntSetWorks() {
     exit(0);
 }
 
+void testIntSerialization() {
+    Serializer serializer;
+    IntColumn(INT_VALUES, intValues[0], intValues[1], intValues[2], intValues[3], intValues[4]).serialize(serializer);
+
+    Deserializer deserializer(serializer.getSize(), serializer.getBuffer());
+    IntColumn read;
+    read.deserialize(deserializer);
+
+    GT_TRUE(read.size() == INT_VALUES);
+    for (size_t i = 0; i < INT_VALUES; i++) {
+        GT_TRUE(read.get(i) == intValues[i]);
+    }
+
+    exit(0);
+}
+
 TEST(W3, testIntTypeWorks) { ASSERT_EXIT_ZERO(testIntTypeWorks) }
 TEST(W3, testIntVarArgsConstructorWorks) { ASSERT_EXIT_ZERO(testIntVarArgsConstructorWorks) }
 TEST(W3, testIntPushBackWorks) { ASSERT_EXIT_ZERO(testIntPushBackWorks) }
 TEST(W3, testIntSetWorks) { ASSERT_EXIT_ZERO(testIntSetWorks) }
+TEST(W3, testIntSerialization) { ASSERT_EXIT_ZERO(testIntSerialization) }
 
 /* End IntColumn tests                                             */
 /*-----------------------------------------------------------------*/
@@ -267,10 +284,27 @@ void testFloatSetWorks() {
     exit(0);
 }
 
+void testFloatSerialization() {
+    Serializer serializer;
+    FloatColumn(FLOAT_VALUES, floatValues[0], floatValues[1], floatValues[2], floatValues[3], floatValues[4]).serialize(serializer);
+
+    Deserializer deserializer(serializer.getSize(), serializer.getBuffer());
+    FloatColumn read;
+    read.deserialize(deserializer);
+
+    GT_TRUE(read.size() == FLOAT_VALUES);
+    for (size_t i = 0; i < FLOAT_VALUES; i++) {
+        GT_TRUE(read.get(i) == floatValues[i]);
+    }
+
+    exit(0);
+}
+
 TEST(W4, testFloatTypeWorks) { ASSERT_EXIT_ZERO(testFloatTypeWorks) }
 TEST(W4, testFloatVarArgsConstructorWorks) { ASSERT_EXIT_ZERO(testFloatVarArgsConstructorWorks) }
 TEST(W4, testFloatPushBackWorks) { ASSERT_EXIT_ZERO(testFloatPushBackWorks) }
 TEST(W4, testFloatSetWorks) { ASSERT_EXIT_ZERO(testFloatSetWorks) }
+TEST(W4, testFloatSerialization) { ASSERT_EXIT_ZERO(testFloatSerialization) }
 
 /* End FloatColumn tests                                           */
 /*-----------------------------------------------------------------*/
@@ -325,10 +359,27 @@ void testBoolSetWorks() {
     exit(0);
 }
 
+void testBoolSerialization() {
+    Serializer serializer;
+    BoolColumn(BOOL_VALUES, boolValues[0], boolValues[1], boolValues[2], boolValues[3], boolValues[4]).serialize(serializer);
+
+    Deserializer deserializer(serializer.getSize(), serializer.getBuffer());
+    BoolColumn read;
+    read.deserialize(deserializer);
+
+    GT_TRUE(read.size() == BOOL_VALUES);
+    for (size_t i = 0; i < BOOL_VALUES; i++) {
+        GT_TRUE(read.get(i) == boolValues[i]);
+    }
+
+    exit(0);
+}
+
 TEST(W5, testBoolTypeWorks) { ASSERT_EXIT_ZERO(testBoolTypeWorks) }
 TEST(W5, testBoolVarArgsConstructorWorks) { ASSERT_EXIT_ZERO(testBoolVarArgsConstructorWorks) }
 TEST(W5, testBoolPushBackWorks) { ASSERT_EXIT_ZERO(testBoolPushBackWorks) }
 TEST(W5, testBoolSetWorks) { ASSERT_EXIT_ZERO(testBoolSetWorks) }
+TEST(W5, testBoolSerialization) { ASSERT_EXIT_ZERO(testBoolSerialization) }
 
 /* End BoolColumn tests                                            */
 /*-----------------------------------------------------------------*/
@@ -383,10 +434,28 @@ void testStringSetWorks() {
     exit(0);
 }
 
+void testStringSerialization() {
+    Serializer serializer;
+    StringColumn column(STRING_VALUES, stringValues[0], stringValues[1], stringValues[2], stringValues[3], stringValues[4]);
+    column.serialize(serializer);
+
+    Deserializer deserializer(serializer.getSize(), serializer.getBuffer());
+    StringColumn read;
+    read.deserialize(deserializer);
+
+    GT_TRUE(read.size() == STRING_VALUES);
+    for (size_t i = 0; i < STRING_VALUES; i++) {
+        GT_TRUE(read.get(i)->equals(stringValues[i]));
+    }
+
+    exit(0);
+}
+
 TEST(W6, testStringTypeWorks) { ASSERT_EXIT_ZERO(testStringTypeWorks) }
 TEST(W6, testStringVarArgsConstructorWorks) { ASSERT_EXIT_ZERO(testStringVarArgsConstructorWorks) }
 TEST(W6, testStringPushBackWorks) { ASSERT_EXIT_ZERO(testStringPushBackWorks) }
 TEST(W6, testStringSetWorks) { ASSERT_EXIT_ZERO(testStringSetWorks) }
+TEST(W6, testStringSerialization) { ASSERT_EXIT_ZERO(testStringSerialization) }
 
 /* End StringColumn tests                                          */
 /*-----------------------------------------------------------------*/
@@ -449,7 +518,6 @@ TEST(W7, testColumnDescription) { ASSERT_EXIT_ZERO(testColumnDescription) }
 TEST(W7, testDataframeDescriptions) { ASSERT_EXIT_ZERO(testDataframeDescriptions) }
 
 int main(int argc, char **argv) {
-
     testing::InitGoogleTest(&argc, argv);
     return RUN_ALL_TESTS();
 }

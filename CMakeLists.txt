@@ -40,10 +40,16 @@ add_subdirectory(${CMAKE_CURRENT_BINARY_DIR}/googletest-src
         EXCLUDE_FROM_ALL
         )
 
+find_package (Threads)
 add_executable(main src/main.cpp src/kvstore/kvstore.cpp)
+target_link_libraries (main ${CMAKE_THREAD_LIBS_INIT})
+
 add_executable(map_test test/test-map.cpp)
 add_executable(array_test test/test-array.cpp)
+
 add_executable(network_test test/network/network_test.cpp)
+target_link_libraries (network_test ${CMAKE_THREAD_LIBS_INIT})
+
 add_executable(personal_test_suite test/dataframe/personal_test_suite.cpp)
 
 target_link_libraries(personal_test_suite gtest)

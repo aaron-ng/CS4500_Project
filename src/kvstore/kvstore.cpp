@@ -1,4 +1,5 @@
 #include "kvstore.h"
+#include "../array.h"
 #include "../dataframe/modified_dataframe.h"
 #include "../utils/dataframe_description.h"
 
@@ -6,9 +7,11 @@ static KBStore byteStores[NUM_KV_STORES];
 static KVStore stores[NUM_KV_STORES];
 
 KVStore::~KVStore() {
-    Object** descs = _map.values();
+    ArrayObject& entries = _map.entrySet();
     for (size_t i = 0; i < _map.get_size(); i++) {
-        delete descs[i];
+        Entry* entry = dynamic_cast<Entry*>(entries.get(i));
+        delete entry->key;
+        delete entry->value;
     }
 }
 
@@ -31,6 +34,8 @@ DataFrame* KVStore::get(Key& key) {
         Deserializer deserializer( bytes->length, bytes->contents);
         newColumn->deserialize(deserializer);
         dataFrame->add_column(newColumn, nullptr);
+
+        delete newColumn;
     }
 
     return dataFrame;

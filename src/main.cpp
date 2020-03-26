@@ -28,6 +28,8 @@ class Demo : public Application {
             for (size_t i = 0; i < SZ; ++i) sum += vals[i] = i;
             DataFrame::fromArray(&m, &kv, SZ, vals);
             DataFrame::fromScalar(&check, &kv, sum);
+
+            delete [] vals;
         }
 
         void counter() {
@@ -36,12 +38,17 @@ class Demo : public Application {
             for (size_t i = 0; i < 100; ++i) sum += v->get_float(0,i);
             p("The sum is  ").pln((float)sum);
             DataFrame::fromScalar(&verify, &kv, (float)sum);
+
+            delete v;
         }
 
         void summarizer() {
             DataFrame* result = kv.waitAndGet(verify);
             DataFrame* expected = kv.waitAndGet(check);
             pln(expected->get_float(0,0)==result->get_float(0,0) ? "SUCCESS":"FAILURE");
+
+            delete result;
+            delete expected;
         }
 };
 
