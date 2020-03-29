@@ -54,5 +54,6 @@ add_executable(tests src/ea2/kvstore/kvstore.cpp
         test/test_network.cpp
         test/test_map.cpp
         test/test_adapter.cpp
+        test/test_demo.cpp
 )
 target_link_libraries (tests ${CMAKE_THREAD_LIBS_INIT} gtest)

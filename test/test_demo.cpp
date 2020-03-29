@@ -1,10 +1,10 @@
-// Language C++
-
 #include <thread>
-#include "demo.h"
+#include <gtest/gtest.h>
 
-int main(int argc, char** argv) {
+#include "utils.h"
+#include "../src/demo.h"
 
+void testDemo() {
     std::vector<KVStore*> stores = { new KVStore(), new KVStore(), new KVStore() };
     std::vector<std::thread> threads;
 
@@ -21,12 +21,19 @@ int main(int argc, char** argv) {
         threads[i].join();
     }
 
+    KVStore* kv = stores[0];
+    DataFrame* result = kv->get(verify);
+    DataFrame* expected = kv->get(check);
+
+    GT_TRUE(expected->get_double(0,0)==result->get_double(0,0));
+    delete result;
+    delete expected;
+
     for (int i = 0; i < 3; i++) {
         delete stores[i];
     }
 
-    return 0;
+    exit(0);
 }
 
-
-
+TEST(W7, testDemo) { ASSERT_EXIT_ZERO(testDemo) }

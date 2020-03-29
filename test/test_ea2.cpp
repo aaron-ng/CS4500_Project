@@ -51,7 +51,12 @@ void testKVStoreMethods() {
 
     Key key("DF1", 1);
 
-    KVStore kvStore;
+    std::vector<KVStore*> stores = { new KVStore(), new KVStore(), new KVStore() };
+    for (size_t i = 0; i < stores.size(); i++) {
+        stores[i]->_stores = stores;
+    }
+
+    KVStore& kvStore = *stores[0];
     kvStore.put(&dataFrame, key);
 
     DataFrame* retrievedDF1 = kvStore.get(key);
@@ -59,6 +64,10 @@ void testKVStoreMethods() {
 
     DataFrame* retrievedDF2 = kvStore.waitAndGet(key);
     testDataFrameEquality(&dataFrame, retrievedDF2);
+
+    for (size_t i = 0; i < stores.size(); i++) {
+        delete stores[i];
+    }
 
     exit(0);
 }
@@ -98,7 +107,13 @@ void testMultipleKVPut() {
     Key key1("DF1", 1);
     Key key2("DF2", 1);
 
-    KVStore kvStore;
+    std::vector<KVStore*> stores = { new KVStore(), new KVStore(), new KVStore() };
+    for (size_t i = 0; i < stores.size(); i++) {
+        stores[i]->_stores = stores;
+    }
+
+    KVStore& kvStore = *stores[0];
+
     kvStore.put(&dataFrame, key1);
     kvStore.put(&dataFrame2, key2);
 
@@ -113,6 +128,10 @@ void testMultipleKVPut() {
 
     DataFrame* retrievedDF4 = kvStore.get(key2);
     testDataFrameEquality(retrievedDF3, retrievedDF4);
+
+    for (size_t i = 0; i < stores.size(); i++) {
+        delete stores[i];
+    }
 
     exit(0);
 }
@@ -152,7 +171,13 @@ void testMultipleKVPutDifferentNodes() {
     Key key1("DF1", 1);
     Key key2("DF2", 2);
 
-    KVStore kvStore;
+    std::vector<KVStore*> stores = { new KVStore(), new KVStore(), new KVStore() };
+    for (size_t i = 0; i < stores.size(); i++) {
+        stores[i]->_stores = stores;
+    }
+
+    KVStore& kvStore = *stores[0];
+
     kvStore.put(&dataFrame, key1);
     kvStore.put(&dataFrame2, key2);
 
@@ -168,6 +193,10 @@ void testMultipleKVPutDifferentNodes() {
     DataFrame* retrievedDF4 = kvStore.get(key2);
     testDataFrameEquality(retrievedDF3, retrievedDF4);
 
+    for (size_t i = 0; i < stores.size(); i++) {
+        delete stores[i];
+    }
+
     exit(0);
 }
 
@@ -179,6 +208,7 @@ void testStoreDoesntDeadlock() {
 
     std::vector<std::thread> threads;
     KVStore kvStore;
+    kvStore._stores = { &kvStore };
 
     for (size_t i = 0; i < 100; i++) {
         threads.emplace_back(std::thread([&k, &kvStore] {

@@ -2,6 +2,7 @@
 
 #include <iostream>
 #include "../utils/instructor-provided/helper.h"
+#include "kvstore/kvstore.h"
 
 /**
  * An application that is running on 
