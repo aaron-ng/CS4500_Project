@@ -1,5 +1,7 @@
 #pragma once
 
+// Language: C++
+
 #include "../utils/key.h"
 
 /**
@@ -34,9 +36,9 @@ class KBStore {
         Map _map;
 
         ~KBStore() {
-            ArrayObject& entries = _map.entrySet();
+            std::vector<Entry*>& entries = _map.entrySet();
             for (size_t i = 0; i < _map.get_size(); i++) {
-                Entry* entry = dynamic_cast<Entry*>(entries.get(i));
+                Entry* entry = dynamic_cast<Entry*>(entries[i]);
                 delete entry->key;
                 delete entry->value;
             }

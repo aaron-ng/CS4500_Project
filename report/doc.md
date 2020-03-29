@@ -6,6 +6,7 @@ The EU2 system is distributed system that will be used for large scale data anal
 - There is a central server that all of the nodes talk to to figure out what nodes are connected and where they are reachable 
 - Each node runs an instance of an Application class. This is where the application specific logic lives
 - Each node also runs an instance of the KVStore. This talks to the central server to get the list of all of the nodes. If the application requests data that is not on the node that the KVStore is running on, it will use the data it received from the central server to talk to the node that has the data.
+- When a dataframe is stored in the KVStore, the columns of it are each stored on different nodes. When it is requested, the columns are pulled from all of the nodes and turned back into a dataframe.
 
 # Implementation
 
@@ -86,35 +87,12 @@ public:
     pln(expected->get_double(0,0)==result->get_double(0,0) ? "SUCCESS":"FAILURE");
   }
 };
-
-
-Here is an example of a client connecting to a running server
-
-    in_addr_t ip = inet_addr(argv[2]);
-    Client c(ip, port, new Echo());
-
-    // Connects to the server running on localhost
-    c.connect(inet_addr("127.0.0.1"), SERVER_PORT);
-
-    int connectedClients = 0;
-    while (c.connected()) {
-        c.poll();
-
-        // IP and port of all of the connected clients
-        c.clientInformation();
-    }
-
-    std::cout << "Received teardown from server" << std::endl;
-
 ```
 
 SOR files can be loaded by using an instance of the `Schema` class and using the build method.
 
 # Open questions
-
-Will the nodes ever write their data to disk?
-If they do write to disk, what format will they use?
-Are nodes going to be all distributed a SoR file and told that they are responsible for part of it?
+There are no open questions at this time.
 
 # Status
 We have implemented the dataframe adapter to read the SoR file format, we have written the dataframe class and we have written the client-server communication. The only thing that remains to be done for the current requirements is to implement the keystore network communication. This should be aproximately 15 hours of work. 

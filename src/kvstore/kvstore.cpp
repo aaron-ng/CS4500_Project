@@ -1,5 +1,6 @@
+// Language C++
+
 #include "kvstore.h"
-#include "../array.h"
 #include "../dataframe/modified_dataframe.h"
 #include "../utils/dataframe_description.h"
 
@@ -7,11 +8,10 @@ static KBStore byteStores[NUM_KV_STORES];
 static KVStore stores[NUM_KV_STORES];
 
 KVStore::~KVStore() {
-    ArrayObject& entries = _map.entrySet();
+    std::vector<Entry*>& entries = _map.entrySet();
     for (size_t i = 0; i < _map.get_size(); i++) {
-        Entry* entry = dynamic_cast<Entry*>(entries.get(i));
-        delete entry->key;
-        delete entry->value;
+        delete entries[i]->key;
+        delete entries[i]->value;
     }
 }
 
@@ -47,10 +47,33 @@ DataFrame* KVStore::get(Key& key) {
  * @param key The key of the dataframe to return
  */
 DataFrame* KVStore::waitAndGet(Key& key) {
-    // TODO use networking
-    while (!stores[key.getNode()]._map.contains_key(&key)) {
 
+    // This has some complicated logic to prevent deadlocks. Anything that waitAndGet is called on will have an
+    // item in the status map on its home node. The status mutex is locked immediately so that until the status
+    // object is acquired, the status cannot be updated if it already exists and cannot be missed if it doesn't.
+
+    // If we didn't have this extra map, we would be checking the main map over and over to see if it contained the
+    // key. Its possible that this could stop whatever is writing the frame to the store from acquiring the mutex and
+    // thus there will be a deadlock. By using this method below, there is one lock and unlock so this problem doesn't
+    // exist.
+
+    KVStore& store = stores[key.getNode()];
+    store._statusMutex.lock();
+
+    if (store._map.contains_key(&key)) {
+        store._statusMutex.unlock();
+        return get(key);
     }
+
+    Ready* ready = dynamic_cast<Ready*>(store._statuses.get(&key));
+    if (!ready) {
+        ready = new Ready();
+        store._statuses.put(key.clone(), ready);
+    }
+
+    store._statusMutex.unlock();
+    while (ready->isReady == false) {}
+
     return get(key);
 }
 
@@ -77,7 +100,14 @@ void KVStore::put(DataFrame* dataframe, Key& key) {
     }
 
     // TODO use networking to put
-    stores[key.getNode()]._map.put(new Key(key.getName(), key.getNode()), desc);
+    KVStore& store = stores[key.getNode()];
+    store._statusMutex.lock();
+
+    store._map.put(new Key(key.getName(), key.getNode()), desc);
+    Ready* ready = dynamic_cast<Ready*>(store._statuses.get(&key));
+    if (ready) { ready->isReady = true; }
+
+    store._statusMutex.unlock();
 }
 
 /**

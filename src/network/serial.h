@@ -4,7 +4,6 @@
 #include "../string.h"
 #include "../object.h"
 #include "../element_column.h"
-#include "example_classes.h"
 
 /**
  * Class to serialize an object
@@ -210,16 +209,6 @@ class Serializer {
             write(data.sin_port);
             write(data.sin_addr.s_addr);
             _write(data.sin_zero, sizeof(char) * 8);
-        }
-
-        /**
-        * Public write method that serializes a Directory object
-        * @param data an directory object
-        */
-        void write(Directory* data) {
-            write(data->_client);
-            write(data->_ports, data->_client);
-            write(data->_addresses, data->_client);
         }
 };
 
@@ -454,17 +443,5 @@ class Deserializer {
             memcpy(content.sin_zero, _buffer + _position - (sizeof(char) * 8), sizeof(char) * 8);
 
             return content;
-        }
-
-
-        /**
-        * Reads an Directory object from the buffer
-        * @return the Directory object
-        */
-        Directory* read_directory() {
-            int64_t client = read_int64();
-            double * ports = read_double_array();
-            String ** addresses = read_string_array();
-            return new Directory(client, ports, addresses);
         }
 };

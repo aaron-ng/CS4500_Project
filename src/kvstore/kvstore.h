@@ -1,5 +1,9 @@
 #pragma once
 
+// Language: C++
+
+#include <atomic>
+
 #include "../object.h"
 #include "../string.h"
 #include "../map.h"
@@ -20,6 +24,12 @@ public:
 
     /** The mapping of keys to descriptions */
     Map _map;
+
+    /** Statuses of keys that are used for waitAndGet. This prevents deadlocks */
+    Map _statuses;
+
+    /** Mutex for _statuses */
+    std::mutex _statusMutex;
 
     ~KVStore();
 
@@ -65,4 +75,16 @@ public:
      * @return The key for the column in a dataframe stored under the given key
      */
     String* _keyFor(const Key& key, size_t column) const;
+
+    /**
+     * An object wrapper a std::atomic that says if a key is ready
+     * Created by ng.h@husky.neu.edu and pazol.l@husky.neu.edu
+     */
+    class Ready: public Object {
+        public:
+            std::atomic<bool> isReady;
+
+            /** Default constructor */
+            Ready() : isReady(false) {}
+    };
 };

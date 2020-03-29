@@ -51,4 +51,9 @@ class Key: public Object {
             return _name->equals(givenKey->_name) && _node == givenKey->getNode();
         }
 
+        /** Clones this key */
+        Object *clone() override {
+            return new Key(_name->c_str(), _node);
+        }
+
 };

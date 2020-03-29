@@ -4,7 +4,6 @@
 
 
 void FAIL() {   exit(1);    }
-void OK(const char* m) { std:: cout << "All test cases in test " << m << " are passed" << std:: endl;}
 void t_true(bool p) { if (!p) FAIL(); }
 void t_false(bool p) { if (p) FAIL(); }
 
@@ -21,8 +20,10 @@ void test1() {
     String * val_2 = new String("2");
     h1->put(key_1, val_1);
     h1->put(key_2, val_2);
-    delete key_1, key_2, val_1, val_2;
-    OK("1");
+    delete key_1;
+    delete key_2;
+    delete val_1;
+    delete val_2;
 }
 
 /**
@@ -39,8 +40,10 @@ void test2() {
     h1->put(key_1, val_2);
     t_true(h1->get_size() == 1);
     t_false(val_1 -> equals(h1->get(key_1)));
-    delete key_1, val_1, val_2;
-    OK("2");
+
+    delete key_1;
+    delete val_1;
+    delete val_2;
 }
 
 /**
@@ -57,8 +60,10 @@ void test3() {
     h1->put(key_2, val_2);
     t_true(h1->get(key_1)->equals(val_1));
     t_true(h1->get(key_2)->equals(val_2));
-    delete key_1, key_2, val_1, val_2;
-    OK("3");
+    delete key_1;
+    delete key_2;
+    delete val_1;
+    delete val_2;
 }
 
 /**
@@ -68,36 +73,13 @@ void test4() {
     Map* h1 = new Map();
     t_true(h1 -> get(new String("1")) == nullptr);
     delete h1;
-    OK("3");
-}
-
-
-/**
- * test cases for remove() method
- * remove returns the value mapped to the given key if the key exists in the map
- * remove returns nullptr if the key does not exist
- */
-
-void test5() {
-    Map* h1 = new Map();
-    String * key_1 = new String("Hello");
-    String * val_1 = new String("1");
-    String * key_2 = new String("World");
-    String * val_2 = new String("2");
-    h1->put(key_1, val_1);
-    h1->put(key_2, val_2);
-    t_true(h1->remove(key_1)->equals(val_1));
-    t_false(h1->remove(key_2)->equals(val_1));
-    t_true(h1->remove(key_1) == nullptr);
-    delete key_1, key_2, val_1, val_2, h1;
-    OK("5");
 }
 
 /**
  * test cases for contains_key() method
  * contains_key returns true/false if the key exist/not exist in the map
  */
-void test6() {
+void test5() {
     Map* h1 = new Map();
     String * key_1 = new String("Hello");
     String * val_1 = new String("1");
@@ -109,8 +91,12 @@ void test6() {
     t_true(h1->contains_key(key_1));
     t_true(h1->contains_key(key_2));
     t_false(h1->contains_key(key_3));
-    delete key_1, key_2, val_1, val_2, key_3, h1;
-    OK("6");
+    delete key_1;
+    delete key_2;
+    delete val_1;
+    delete val_2;
+    delete key_3;
+    delete h1;
 }
 
 
@@ -118,7 +104,7 @@ void test6() {
  * test cases values() function
  * testing on values() function that return all values that exist in the Map
  */
-void test7() {
+void test6() {
     Map* h1 = new Map();
     String * key_1 = new String("A");
     String * val_1 = new String("1");
@@ -129,14 +115,19 @@ void test7() {
     h1->put(key_1, val_1);
     h1->put(key_2, val_2);
     h1->put(key_3, val_3);
-    Object** values_array;
-    values_array = h1->values();
-    t_false(values_array == nullptr);
+
+    std::vector<Entry*>& entries = h1->entrySet();
+
     for (int i=0; i< 3; i++) {
-        t_true(val_1 -> equals(values_array[i]) || val_2 -> equals(values_array[i]) || val_3 -> equals(values_array[i]));
+        t_true(val_1 -> equals(entries[i]->value) || val_2 -> equals(entries[i]->value) || val_3 -> equals(entries[i]->value));
     }
-    delete key_1, key_2, key_3, val_1, val_2, val_3, h1;
-    OK("9");
+    delete key_1;
+    delete key_2;
+    delete key_3;
+    delete val_1;
+    delete val_2;
+    delete val_3;
+    delete h1;
 }
 
 static const int _stressTestVal = 10000;
@@ -172,25 +163,15 @@ void mapStressTest() {
         String* getString = dynamic_cast<String*>(h1->get(keyStr));
         t_true(getString != nullptr);
         t_true(getString->equals(valStr));
-
-        // Test removeString
-        String* removedString = dynamic_cast<String*>(h1->remove(keyStr));
-        t_false(h1->contains_key(keyStr));
-
-        delete removedString;
     }
-
-    OK("Stress test complete");
 }
 
 int main() {
     test1();
     test2();
     test3();
-    test4();
     test5();
     test6();
-    test7();
 	mapStressTest();
     return 0;
 }

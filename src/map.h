@@ -2,12 +2,16 @@
 // Created by Jiawen Liu on 1/24/20.
 //
 
+// Language: C++
+
 #ifndef MAP_H
 #define MAP_H
 
 #pragma once
 #include "object.h"
-#include "array.h"
+
+#include <vector>
+#include <mutex>
 
 /**
  * An entry in a map
@@ -42,30 +46,20 @@ class Map : public Object {
 public:
 
     /** The array that stores all of the buckets */
-    ArrayObject _array;
+    std::vector<std::vector<Entry*>> _array;
 
     /** The collection of entries in the map */
-    ArrayObject _entrySet;
+    std::vector<Entry*> _entrySet;
+
+    /** Mutex to make this map thread safe */
+    std::mutex _mutex;
 
     /**
      * Default constructor that constructs an empty Map with
     */
     Map() {
         for (int i = 0; i < 16; i++) {
-            _array.push_back(new ArrayObject());
-        }
-    }
-
-    /**
-     * Destructor that delete Map object
-     */
-    ~Map() {
-        for (int i = 0; i < _entrySet.size(); i++) {
-            delete _entrySet.get(i);
-        }
-
-        for (int i = 0; i < _array.size(); i++) {
-            delete _array.get(i);
+            _array.push_back(std::vector<Entry*>());
         }
     }
 
@@ -81,18 +75,23 @@ public:
      * @return  val
      */
     void put(Object* key, Object* val) {
+        _mutex.lock();
+
         _resizeIfNeeded();
 
         Entry* entry = _getEntry(key);
         if (entry) {
             entry->value = val;
+            _mutex.unlock();
+
             return;
         }
 
         Entry* newEntry = new Entry(key, val);
         _entrySet.push_back(newEntry);
         _put(newEntry);
-        return;
+
+        _mutex.unlock();
     }
 
     /**
@@ -104,17 +103,16 @@ public:
         size_t resizeThreshold = (float)_array.size() * 0.75;
         if (resizeThreshold <= (_entrySet.size() + 1)) {
             for (size_t i = 0; i < _array.size(); i++) {
-                ArrayObject* bucketArr = dynamic_cast<ArrayObject*>(_array.get(i));
-                bucketArr->clear();
+                _array[i].empty();
             }
 
             size_t size = _array.size();
             for (size_t i = 0; i < size; i++) {
-                _array.push_back(new ArrayObject());
+                _array.push_back(std::vector<Entry*>());
             }
 
             for (size_t i = 0; i < _entrySet.size(); i++) {
-                _put(dynamic_cast<Entry*>(_entrySet.get(i)));
+                _put(_entrySet[i]);
             }
         }
     }
@@ -125,9 +123,7 @@ public:
      */
     void _put(Entry* entry) {
         size_t bucketIndex = entry->hash % _array.size();
-        ArrayObject* bucketArr = dynamic_cast<ArrayObject*>(_array.get(bucketIndex));
-
-        bucketArr->push_back(entry);
+        _array[bucketIndex].push_back(entry);
     }
 
     /**
@@ -136,7 +132,11 @@ public:
      * @return  the value mapped to the given key, or nullptr if the key is not found
      */
     Object* get(Object* key) {
+        _mutex.lock();
+
         Entry* entry = _getEntry(key);
+        _mutex.unlock();
+
         return entry ? entry->value : nullptr;
     }
 
@@ -149,9 +149,9 @@ public:
         size_t hash = key->hash();
         size_t bucketIndex = hash % _array.size();
 
-        ArrayObject* bucketArr = dynamic_cast<ArrayObject*>(_array.get(bucketIndex));
-        for (int i = 0; i < bucketArr->size(); i++) {
-            Entry* entry = dynamic_cast<Entry*>(bucketArr->get(i));
+        std::vector<Entry*>& bucketArr =_array[bucketIndex];
+        for (int i = 0; i < bucketArr.size(); i++) {
+            Entry* entry = bucketArr[i];
             if (entry->key->equals(key)) {
                 return entry;
             }
@@ -162,91 +162,14 @@ public:
 
     /**
      * Returns true if this map contains the given key
-     * @param key   The key whose presence in this map is to be tested
+     * @param key The key whose presence in this map is to be tested
      * @return  true if this map contains a mapping for the specified key, otherwise false
      */
-    bool contains_key(Object* key) { return _getEntry(key) != nullptr; }
+    bool contains_key(Object* key) { return get(key) != nullptr; }
 
-
-    /**
-     * Removes the mapping for the specified key from this map if present.
-     * @param key
-     * @return   value associated with the key, or nullptr if the key is not found
-     */
-    Object* remove(Object* key) {
-        size_t hash = key->hash();
-        size_t bucketIndex = hash % _array.size();
-
-        Object* value = nullptr;
-        Entry* entry = nullptr;
-        
-        // Delete the entry from the buckets
-        ArrayObject* bucketArr = dynamic_cast<ArrayObject*>(_array.get(bucketIndex));
-        for (int i = 0; i < bucketArr->size(); i++) {
-            entry = dynamic_cast<Entry*>(bucketArr->get(i));
-            if (entry->key->equals(key)) {
-                bucketArr->remove(i);
-                value = entry->value;
-                break;
-            }
-        }
-
-        // Delete the entry from the entry set
-        if (value) {
-            for (size_t i = 0; i < _entrySet.size(); i++) {
-                if (_entrySet.get(i) == entry) {
-                    _entrySet.remove(i);
-                    break;
-                }
-            }
-        }
-        
-        return value;
-    }
-
-    /** Returns all of the entries in the map. These are of type Entry. Modifying this is undefined behavior */
-    ArrayObject& entrySet() { return _entrySet; }
-
-    /**
-     * @return  a list of values contained in this map
-     */
-    Object** values() {
-        Object** values = new Object*[_entrySet.size()];
-        for (size_t i = 0; i < _entrySet.size(); i++) {
-            values[i] = dynamic_cast<Entry*>(_entrySet.get(i))->value;
-        }
-
-        return values;
-    }
-
-    /**
-     * Provides a hash value for this map
-     * @return The hash value for this map
-     */
-    size_t hash() {
-        size_t hash = 0;
-        for (size_t i = 0; i < _entrySet.size(); i++) {
-            hash += dynamic_cast<Entry*>(_entrySet.get(i))->hash;
-        }
-        return hash;
-    }
-
-    /**
-     * Determines if this map is equal to another object. The object is equal if it is also a map
-     * and contains all the same values and keys and only those
-     * @param object The object to test equality against
-     * @return true if the object fits the above criteria, false otherwise
-     */
-    bool equals(Object* object) {
-        Map* map = dynamic_cast<Map*>(object);
-        if (!map || map->get_size() != get_size()) { return false; }
-
-        for (size_t i = 0; i < _entrySet.size(); i++) {
-            Entry* entry = dynamic_cast<Entry*>(_entrySet.get(i));
-            Object* value = map->get(entry->key);
-            if (!value || !value->equals(entry)) { return false; }
-        }
-        return true;
+    /** Returns all of the entries in the map. These are of type Entry. Modifying this is undefined behavior. This method is potentially not thread safe */
+    std::vector<Entry*>& entrySet() {
+        return _entrySet;
     }
 };
 #endif
