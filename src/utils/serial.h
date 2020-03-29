@@ -1,9 +1,9 @@
 #pragma once
 #include <arpa/inet.h>
 #include <netinet/in.h>
-#include "../string.h"
-#include "../object.h"
-#include "../element_column.h"
+#include "instructor-provided/string.h"
+#include "instructor-provided/object.h"
+#include "datastructures/element_column.h"
 
 /**
  * Class to serialize an object

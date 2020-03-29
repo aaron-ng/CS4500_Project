@@ -3,8 +3,8 @@
 #include <vector>
 #include <unordered_map>
 
-#include "../values/valueproducer.h"
-#include "../values/valueproducers.h"
+#include "valueproducer.h"
+#include "valueproducers.h"
 
 /**
  * A class that will build values from strings from an SoR file between delimiters
@@ -26,7 +26,7 @@ class ValueFactory {
             switch (type) {
                 case STRING: return 0;
                 case INT: return 1;
-                case FLOAT: return 2;
+                case DOUBLE: return 2;
                 case BOOL: return 3;
                 default: return -1;
             }

@@ -8,7 +8,7 @@
 #define MAP_H
 
 #pragma once
-#include "object.h"
+#include "../instructor-provided/object.h"
 
 #include <vector>
 #include <mutex>

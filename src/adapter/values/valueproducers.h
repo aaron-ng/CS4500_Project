@@ -3,7 +3,7 @@
 #include <string.h>
 
 #include "valueproducer.h"
-#include "../../dataframe/column_type.h"
+#include "../../utils/column_type.h"
 
 /** A value producer for a string */
 class StringProducer: public ValueProducer {
@@ -102,7 +102,7 @@ class FloatProducer : public ValueProducer {
         }
 
         /** This class produces float values */
-        ColumnType producedType() const override { return FLOAT; }
+        ColumnType producedType() const override { return DOUBLE; }
 };
 
 /** A class that produces an IntValue */

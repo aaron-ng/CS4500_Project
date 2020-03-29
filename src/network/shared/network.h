@@ -12,7 +12,7 @@
 #include <assert.h>
 #include <sys/ioctl.h>
 
-#include "serial.h"
+#include "../../utils/serial.h"
 
 /** The max number of clients that need to be handled */
 const uint8_t MAX_NUMBER_OF_CLIENTS = 5;

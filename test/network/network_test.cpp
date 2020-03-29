@@ -1,7 +1,7 @@
 #include <iostream>
 #include <thread>
 
-#include "../../src/network/messages.h"
+#include "../../src/network/shared/messages.h"
 #include "../../src/network/server.h"
 #include "../../src/network/client.h"
 

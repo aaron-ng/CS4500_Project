@@ -3,7 +3,7 @@
 #include <chrono>
 #include <cmath>
 
-#include "../../src/dataframe/modified_dataframe.h"
+#include "../../src/dataframe/dataframe.h"
 #include "../test_util.h"
 
 class ExampleOneRower : public Rower {

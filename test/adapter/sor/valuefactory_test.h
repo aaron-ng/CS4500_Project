@@ -2,8 +2,8 @@
 
 #include "../../test_util.h"
 #include "../test_template.h"
-#include "../../../src/adapter/sor/schema.h"
-#include "../../../src/adapter/sor/valuefactory.h"
+#include "../../../src/adapter/sor/schemabuilder.h"
+#include "../../../src/adapter/values/valuefactory.h"
 #include "../../../src/adapter/sor/lineparser.h"
 #include "../../../src/adapter/values/valuetypes.h"
 

@@ -3,9 +3,9 @@
 #include <stdio.h>
 #include <algorithm>
 
-#include "../../dataframe/modified_dataframe.h"
+#include "../../dataframe/dataframe.h"
 #include "lineparser.h"
-#include "valuefactory.h"
+#include "../values/valuefactory.h"
 
 /** A class that will build a Sor schema from a stream */
 class SchemaBuilder {

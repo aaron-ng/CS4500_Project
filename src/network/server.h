@@ -1,8 +1,8 @@
 #pragma once
 
-#include "network.h"
-#include "../element_column.h"
-#include "messages.h"
+#include "shared/network.h"
+#include "../utils/datastructures/element_column.h"
+#include "shared/messages.h"
 
 /**
  * An association of a ClientIdentification with a Socket

@@ -1,7 +1,7 @@
 #pragma once
 
-#include "network.h"
-#include "messages.h"
+#include "shared/network.h"
+#include "shared/messages.h"
 
 /**
  * A client that is not running on this machine

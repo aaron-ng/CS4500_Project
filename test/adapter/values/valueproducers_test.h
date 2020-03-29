@@ -3,7 +3,7 @@
 #include "../../test_util.h"
 #include "../test_template.h"
 #include "../../../src/adapter/values/valueproducers.h"
-#include "../../../src/dataframe/modified_dataframe.h"
+#include "../../../src/dataframe/dataframe.h"
 
 class ValueProducers_test : public Test_template {
 

@@ -5,16 +5,16 @@
 #include <cstdarg>
 #include <thread>
 
-#include "column_type.h"
-#include "../object.h"
-#include "../element_column.h"
-#include "../string.h"
-#include "../kvstore/kvstore.h"
-#include "../network/messages.h"
+#include "../utils/column_type.h"
+#include "../utils/instructor-provided/object.h"
+#include "../utils/datastructures/element_column.h"
+#include "../utils/instructor-provided/string.h"
+#include "../ea2/kvstore/kvstore.h"
+#include "../network/shared/messages.h"
 
 class IntColumn;
 class BoolColumn;
-class FloatColumn;
+class DoubleColumn;
 class StringColumn;
 
 /**************************************************************************
@@ -34,14 +34,14 @@ public:
      *  nullptr if of the wrong type.  */
     virtual IntColumn* as_int() { return nullptr; }
     virtual BoolColumn*  as_bool() { return nullptr; }
-    virtual FloatColumn* as_float() { return nullptr; }
+    virtual DoubleColumn* as_double() { return nullptr; }
     virtual StringColumn* as_string() { return nullptr; }
 
     /** Type appropriate push_back methods. Calling the wrong method is
       * undefined behavior. **/
     virtual void push_back(int val) {}
     virtual void push_back(bool val) {}
-    virtual void push_back(float val) {}
+    virtual void push_back(double val) {}
     virtual void push_back(String* val) {}
 
     /** Returns the number of elements in the column. */
@@ -199,16 +199,16 @@ public:
 };
 
 /*************************************************************************
-* FloatColumn::
+* DoubleColumn::
 * Holds bool values.
 * Written by: pazol.l@husky.neu.edu and ng.h@husky.neu.edu
 */
-class FloatColumn : public Column {
+class DoubleColumn : public Column {
 public:
 
-    FloatColumn() = default;
+    DoubleColumn() = default;
 
-    FloatColumn(int n, ...) {
+    DoubleColumn(int n, ...) {
         va_list varArgs;
         va_start(varArgs, n);
         for (int i = 0; i < n; i++) {
@@ -218,26 +218,26 @@ public:
     }
 
     /**
-     * Gets the float at the given index. Out of bounds is undefined behavior
+     * Gets the double at the given index. Out of bounds is undefined behavior
      * @param idx The index of the element to get
      * @return The element at the given index
      */
-    float get(size_t idx) { return _elements.get(idx)->f; }
+    double get(size_t idx) { return _elements.get(idx)->f; }
 
     /**
-     * Pushes back a new float onto the column
+     * Pushes back a new double onto the column
      * @param val The value to add to the end of the column
      */
-    virtual void push_back(float val) { _elements.grow()->f = val; }
+    virtual void push_back(double val) { _elements.grow()->f = val; }
 
     /**
-     * Returns this column as an FloatColumn
-     * @return This column as an FloatColumn
+     * Returns this column as an DoubleColumn
+     * @return This column as an DoubleColumn
      */
-    virtual FloatColumn* as_float() { return this; }
+    virtual DoubleColumn* as_double() { return this; }
 
     /** Set value at idx. An out of bound idx is undefined.  */
-    void set(size_t idx, float val) { _elements.get(idx)->f = val; }
+    void set(size_t idx, double val) { _elements.get(idx)->f = val; }
 
     /**
      * Returns the number of elements inside of this column
@@ -247,13 +247,13 @@ public:
 
     /**
      * Provides the type of this column
-     * @return ColumnType::FLOAT
+     * @return ColumnType::DOUBLE
      */
-    virtual char get_type() { return FLOAT; }
+    virtual char get_type() { return DOUBLE; }
 
     /** Clones this column. The resulting column will have all of the data inside of this column */
     virtual Object* clone() {
-        FloatColumn* newColumn = new FloatColumn();
+        DoubleColumn* newColumn = new DoubleColumn();
         for (size_t i = 0; i < _elements.size(); i++) { newColumn->push_back(_elements.get(i)->f); }
         return newColumn;
     }
@@ -360,7 +360,7 @@ inline Column* allocateColumnOfType(char type) {
     switch (type) {
         case INT: return new IntColumn();
         case BOOL: return new BoolColumn();
-        case FLOAT: return new FloatColumn();
+        case DOUBLE: return new DoubleColumn();
         case STRING: return new StringColumn();
         default: return nullptr;
     }
@@ -378,9 +378,6 @@ public:
 
     /** The storage for the column names */
     ElementColumn _columnNames;
-
-    /** The storage for the row names */
-    ElementColumn _rowNames;
 
     /** The types of all of the columns */
     char* _types = nullptr;
@@ -419,12 +416,6 @@ public:
                 delete _columnNames.get(i)->s;
             }
         }
-
-        for (size_t i = 0; i < _rowNames.size(); i++) {
-            if (_rowNames.get(i)) {
-                delete _rowNames.get(i)->s;
-            }
-        }
     }
 
     /** Add a column of the given type and name (can be nullptr), name
@@ -441,16 +432,6 @@ public:
         delete[] _types;
         _types = newTypes;
     }
-
-    /** Add a row with a name (possibly nullptr), name is external.  Names are
-     *  expectd to be unique, duplicates result in undefined behavior. */
-    void add_row(String* name) {
-        _rowNames.grow()->s = name ? name->clone() : name;
-    }
-
-    /** Return name of row at idx; nullptr indicates no name. An idx >= width
-      * is undefined. */
-    String* row_name(size_t idx) { return _rowNames.get(idx)->s; }
 
     /** Return name of column at idx; nullptr indicates no name given.
       *  An idx >= width is undefined.*/
@@ -469,45 +450,11 @@ public:
         return -1;
     }
 
-    /** Given a row name return its index, or -1. If nullptr is given, the result will always be -1 */
-    int row_idx(const char* name) {
-        if (!name) { return -1; }
-        for (size_t i = 0; i < _rowNames.size(); i++) {
-            String* nameI = _rowNames.get(i)->s;
-            if (nameI && !strcmp(nameI->c_str(), name)) { return i; }
-        }
-        return -1;
-    }
-
     /** The number of columns */
     size_t width() { return _columnNames.size(); }
 
-    /** The number of rows */
-    size_t length() { return _rowNames.size(); }
-
     /** Gets all of the types in the schema as a char array */
     const char* types() const { return _types; }
-};
-
-/*****************************************************************************
- * Fielder::
- * A field vistor invoked by Row.
- */
-class Fielder : public Object {
-public:
-
-    /** Called before visiting a row, the argument is the row offset in the
-      dataframe. */
-    virtual void start(size_t r) {};
-
-    /** Called for fields of the argument's type with the value of the field. */
-    virtual void accept(bool b) {};
-    virtual void accept(float f) {};
-    virtual void accept(int i) {};
-    virtual void accept(String* s) {};
-
-    /** Called when all fields have been seen. */
-    virtual void done() {};
 };
 
 /*************************************************************************
@@ -540,7 +487,7 @@ public:
     /** Setters: set the given column with the given value. Setting a column with
       * a value of the wrong type is undefined. */
     void set(size_t col, int val) { _entries[col].i = val; }
-    void set(size_t col, float val) { _entries[col].f = val; }
+    void set(size_t col, double val) { _entries[col].f = val; }
     void set(size_t col, bool val) { _entries[col].b = val; }
     /** Acquire ownership of the string. */
     void set(size_t col, String* val) { _entries[col].s = val; }
@@ -554,7 +501,7 @@ public:
       * of the requested type, the result is undefined. */
     int get_int(size_t col) { return _entries[col].i; }
     bool get_bool(size_t col) { return _entries[col].b; }
-    float get_float(size_t col) { return _entries[col].f; }
+    double get_double(size_t col) { return _entries[col].f; }
     String* get_string(size_t col) { return _entries[col].s; }
 
     /** Number of fields in the row. */
@@ -562,33 +509,6 @@ public:
 
     /** Type of the field at the given position. An idx >= width is  undefined. */
     char col_type(size_t idx) { return _schema.col_type(idx); }
-
-    /** Given a Fielder, visit every field of this row. The first argument is
-      * index of the row in the dataframe.
-      * Calling this method before the row's fields have been set is undefined. */
-    void visit(size_t idx, Fielder& f) {
-        f.start(idx);
-        for (size_t i = 0; i < _schema.width(); i++) {
-            switch (_schema.col_type(i)) {
-                case INT:
-                    f.accept(_entries[i].i);
-                    break;
-                case BOOL:
-                    f.accept(_entries[i].b);
-                    break;
-                case FLOAT:
-                    f.accept(_entries[i].f);
-                    break;
-                case STRING:
-                    f.accept(_entries[i].s);
-                    break;
-                default:
-                    continue;
-            }
-        }
-
-        f.done();
-    }
 
 };
 
@@ -661,10 +581,6 @@ public:
             if (_schema.width() == 0 || col->size() == nrows()) {
                 _schema.add_column(col->get_type(), name);
                 _columns.grow()->c = dynamic_cast<Column*>(col->clone());
-
-                if (_schema.width() == 1) {
-                    for (size_t i = 0; i < col->size(); i++) { _schema.add_row(nullptr); }
-                }
             }
         }
     }
@@ -673,21 +589,18 @@ public:
      *  columns out of bounds, or request the wrong type is undefined.*/
     int get_int(size_t col, size_t row) { return getColumn(col)->as_int()->get(row); }
     bool get_bool(size_t col, size_t row) { return getColumn(col)->as_bool()->get(row); }
-    float get_float(size_t col, size_t row) { return getColumn(col)->as_float()->get(row); }
+    double get_double(size_t col, size_t row) { return getColumn(col)->as_double()->get(row); }
     String*  get_string(size_t col, size_t row) { return getColumn(col)->as_string()->get(row); }
 
     /** Return the offset of the given column name or -1 if no such col. */
     int get_col(String& col) { return _schema.col_idx(col.c_str()); }
-
-    /** Return the offset of the given row name or -1 if no such row. */
-    int get_row(String& col) { return _schema.row_idx(col.c_str()); }
 
     /** Set the value at the given column and row to the given value.
       * If the column is not  of the right type or the indices are out of
       * bound, the result is undefined. */
     void set(size_t col, size_t row, int val) { getColumn(col)->as_int()->set(row, val); }
     void set(size_t col, size_t row, bool val) { getColumn(col)->as_bool()->set(row, val); }
-    void set(size_t col, size_t row, float val) { getColumn(col)->as_float()->set(row, val); }
+    void set(size_t col, size_t row, double val) { getColumn(col)->as_double()->set(row, val); }
     void set(size_t col, size_t row, String* val) { getColumn(col)->as_string()->set(row, val); }
 
     /** Set the fields of the given row object with values from the columns at
@@ -703,8 +616,8 @@ public:
                 case BOOL:
                     set(i, idx, row.get_bool(i));
                     break;
-                case FLOAT:
-                    set(i, idx, row.get_float(i));
+                case DOUBLE:
+                    set(i, idx, row.get_double(i));
                     break;
                 case STRING:
                     set(i, idx, row.get_string(i));
@@ -727,8 +640,8 @@ public:
                 case BOOL:
                     col->as_bool()->push_back(row.get_bool(i));
                     break;
-                case FLOAT:
-                    col->as_float()->push_back(row.get_float(i));
+                case DOUBLE:
+                    col->as_double()->push_back(row.get_double(i));
                     break;
                 case STRING:
                     col->as_string()->push_back(row.get_string(i));
@@ -737,18 +650,16 @@ public:
                     continue;
             }
         }
-
-        _schema.add_row(nullptr);
     }
 
     /** The number of rows in the dataframe. */
-    size_t nrows() { return _schema.length(); }
+    size_t nrows() { return getColumn(0)->size(); }
 
     /** The number of columns in the dataframe.*/
     size_t ncols() { return _columns.size(); }
 
     /** Visit rows in order */
-    void map(Rower& r) { _map(&r, 0, _schema.length()); }
+    void map(Rower& r) { _map(&r, 0, nrows()); }
 
     /**
      * Visits rows in order, but only elements in [startIdx, endIdx)
@@ -771,11 +682,11 @@ public:
     /** This method clones the Rower and executes the map in parallel. Join is
      * used at the end to merge the results. If the rower has not properly implemented copy, the program exits */
      void pmap(Rower& r) {
-        if (_schema.length() < 4) { map(r); return; }
+        if (nrows() < 4) { map(r); return; }
 
         // Determine how many elements each workgroup should have. The remainder is dealt with by the last workgroup,
         // which is also the current thread
-        size_t elementsPerWorkgroup = _schema.length() / _WORKGROUPS;
+        size_t elementsPerWorkgroup = nrows() / _WORKGROUPS;
 
         std::thread threads[_WORKGROUPS - 1];
         Rower* rowers[_WORKGROUPS - 1];
@@ -795,7 +706,7 @@ public:
 
         // The current thread should cover the last workgroup, which goes to the last element to account for a length
         // not divisible by _WORKGROUPS
-        _map(&r, (_WORKGROUPS - 1) * elementsPerWorkgroup, _schema.length());
+        _map(&r, (_WORKGROUPS - 1) * elementsPerWorkgroup, nrows());
         for (size_t i = 0; i < _WORKGROUPS - 1; i++) {
             threads[i].join();
             r.join_delete(rowers[i]);
@@ -808,7 +719,7 @@ public:
         DataFrame* newFrame = new DataFrame(*this);
         Row row(_schema);
 
-        for (size_t idx = 0; idx < _schema.length(); idx++) {
+        for (size_t idx = 0; idx < nrows(); idx++) {
             _fillRow(row, idx);
             if (r.accept(row)) {
                 newFrame->add_row(row);
@@ -829,7 +740,6 @@ public:
         std::cout << std::endl;
 
         for (size_t row = 0; row < nrows(); row++) {
-            _printRowName(row);
             std::cout << " ";
             for (size_t col = 0; col < ncols(); col++) {
                 _printColumnEntry(col, row);
@@ -888,8 +798,8 @@ public:
      * @param kv The key value store to put the dataframe in
      * @param value The value to put into the dataframe
      */
-    static void fromScalar(Key* key, KVStore* kv, float value) {
-        const char charSchema[2] = {FLOAT, '\0'};
+    static void fromScalar(Key* key, KVStore* kv, double value) {
+        const char charSchema[2] = {DOUBLE, '\0'};
         Schema schema(charSchema);
         DataFrame* dataFrame = new DataFrame(schema);
         Row row(schema);
@@ -977,8 +887,8 @@ public:
      * @param count The number of items in values
      * @param values The values to put into the dataframe
      */
-    static void fromArray(Key* key, KVStore* kv, size_t count, float* values) {
-        const char charSchema[2] = {FLOAT, '\0'};
+    static void fromArray(Key* key, KVStore* kv, size_t count, double* values) {
+        const char charSchema[2] = {DOUBLE, '\0'};
         Schema schema(charSchema);
         DataFrame* dataFrame = new DataFrame(schema);
         Row row(schema);
@@ -1031,16 +941,6 @@ public:
     }
 
     /**
-     * Prints out the name of a row to standard out
-     * @param row The index of the row to print the name for
-     */
-    void _printRowName(size_t row) {
-        String* name = _schema.row_name(row);
-        if (!name) { std::cout << std::left << std::setw(_COL_WIDTH) << row; }
-        else std::cout << std::left << std::setw(_COL_WIDTH) << name->c_str();
-    }
-
-    /**
      * Prints the entry at the given column to standard out
      * @param col The index of the column to print of
      * @param row The index of the row in the given column to print
@@ -1058,9 +958,9 @@ public:
                 if (boolColumn) { std::cout << std::left << std::setw(_COL_WIDTH) << boolColumn->get(row); }
                 break;
             }
-            case FLOAT: {
-                FloatColumn* floatColumn = column->as_float();
-                if (floatColumn) { std::cout << std::left << std::setw(_COL_WIDTH) << floatColumn->get(row); }
+            case DOUBLE: {
+                DoubleColumn* doubleColumn = column->as_double();
+                if (doubleColumn) { std::cout << std::left << std::setw(_COL_WIDTH) << doubleColumn->get(row); }
                 break;
             }
             case STRING: {
@@ -1094,9 +994,9 @@ public:
                     if (boolColumn) { row.set(i, boolColumn->get(idx)); }
                     break;
                 }
-                case FLOAT: {
-                    FloatColumn* floatColumn = col->as_float();
-                    if (floatColumn) { row.set(i, floatColumn->get(idx)); }
+                case DOUBLE: {
+                    DoubleColumn* doubleColumn = col->as_double();
+                    if (doubleColumn) { row.set(i, doubleColumn->get(idx)); }
                     break;
                 }
                 case STRING: {

@@ -1,9 +1,9 @@
 #pragma once
 
-#include "../network/serial.h"
-#include "../dataframe/column_type.h"
-#include "key.h"
-#include "../network/network.h"
+#include "../utils/serial.h"
+#include "../utils/column_type.h"
+#include "../utils/key.h"
+#include "../network/shared/network.h"
 
 /**
  * Describes the location of one column and its type in the distributed value store

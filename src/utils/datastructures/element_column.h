@@ -5,7 +5,7 @@
  */
 union Element {
     int i;
-    float f;
+    double f;
     bool b;
     class String* s;
     class Column* c;

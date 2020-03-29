@@ -4,11 +4,11 @@
 
 #include <atomic>
 
-#include "../object.h"
-#include "../string.h"
-#include "../map.h"
-#include "../utils/key.h"
-#include "kbstore.h"
+#include "../../utils/instructor-provided/object.h"
+#include "../../utils/instructor-provided/string.h"
+#include "../../utils/datastructures/map.h"
+#include "../../utils/key.h"
+#include "../kbstore.h"
 
 // TODO remove
 /** The temporary number of KV store nodes. This should be the number of currently connected clients when networking is done */

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../../dataframe/column_type.h"
+#include "../../utils/column_type.h"
 
 /**
  * A factory that produces a value

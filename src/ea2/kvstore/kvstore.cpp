@@ -1,17 +1,23 @@
 // Language C++
 
 #include "kvstore.h"
-#include "../dataframe/modified_dataframe.h"
-#include "../utils/dataframe_description.h"
+#include "../../dataframe/dataframe.h"
+#include "../dataframe_description.h"
 
 static KBStore byteStores[NUM_KV_STORES];
 static KVStore stores[NUM_KV_STORES];
 
 KVStore::~KVStore() {
     std::vector<Entry*>& entries = _map.entrySet();
-    for (size_t i = 0; i < _map.get_size(); i++) {
+    for (size_t i = 0; i < entries.size(); i++) {
         delete entries[i]->key;
         delete entries[i]->value;
+    }
+
+    std::vector<Entry*>& statusEntries = _statuses.entrySet();
+    for (size_t i = 0; i < statusEntries.size(); i++) {
+        delete statusEntries[i]->key;
+        delete statusEntries[i]->value;
     }
 }
 

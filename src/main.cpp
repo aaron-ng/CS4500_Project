@@ -1,8 +1,10 @@
+// Language C++
+
 #include <thread>
 
-#include "adapter/sor/schema.h"
-#include "application.h"
-#include "kvstore/kvstore.h"
+#include "adapter/sor/schemabuilder.h"
+#include "ea2/application.h"
+#include "ea2/kvstore/kvstore.h"
 
 Key m("main",0);
 Key verify("verif",0);
@@ -22,9 +24,9 @@ class Demo : public Application {
         }
 
         void producer() {
-            size_t SZ = 100;
-            float* vals = new float[SZ];
-            float sum = 0;
+            size_t SZ = 100*1000;
+            double* vals = new double[SZ];
+            double sum = 0;
             for (size_t i = 0; i < SZ; ++i) sum += vals[i] = i;
             DataFrame::fromArray(&m, &kv, SZ, vals);
             DataFrame::fromScalar(&check, &kv, sum);
@@ -35,9 +37,9 @@ class Demo : public Application {
         void counter() {
             DataFrame* v = kv.waitAndGet(m);
             size_t sum = 0;
-            for (size_t i = 0; i < 100; ++i) sum += v->get_float(0,i);
-            p("The sum is  ").pln((float)sum);
-            DataFrame::fromScalar(&verify, &kv, (float)sum);
+            for (size_t i = 0; i < 100*1000; ++i) sum += v->get_double(0,i);
+            p("The sum is  ").pln(sum);
+            DataFrame::fromScalar(&verify, &kv, (double)sum);
 
             delete v;
         }
@@ -45,7 +47,7 @@ class Demo : public Application {
         void summarizer() {
             DataFrame* result = kv.waitAndGet(verify);
             DataFrame* expected = kv.waitAndGet(check);
-            pln(expected->get_float(0,0)==result->get_float(0,0) ? "SUCCESS":"FAILURE");
+            pln(expected->get_double(0,0)==result->get_double(0,0) ? "SUCCESS":"FAILURE");
 
             delete result;
             delete expected;

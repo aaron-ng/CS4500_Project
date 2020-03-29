@@ -41,13 +41,13 @@ add_subdirectory(${CMAKE_CURRENT_BINARY_DIR}/googletest-src
         )
 
 find_package (Threads)
-add_executable(main src/main.cpp src/kvstore/kvstore.cpp)
+add_executable(main src/main.cpp src/ea2/kvstore/kvstore.cpp)
 target_link_libraries (main ${CMAKE_THREAD_LIBS_INIT})
 
 add_executable(map_test test/test-map.cpp)
 
 add_executable(network_test test/network/network_test.cpp)
-add_executable(personal_test_suite test/dataframe/personal_test_suite.cpp src/kvstore/kvstore.cpp)
+add_executable(personal_test_suite test/dataframe/personal_test_suite.cpp src/ea2/kvstore/kvstore.cpp)
 target_link_libraries (network_test ${CMAKE_THREAD_LIBS_INIT})
 
 target_link_libraries(personal_test_suite gtest)

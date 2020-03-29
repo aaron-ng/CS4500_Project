@@ -1,13 +1,13 @@
 #pragma once
 
 #include <iostream>
-#include "printer.h"
+#include "../utils/instructor-provided/helper.h"
 
 /**
  * An application that is running on 
  * Created by ng.h@husky.neu.edu and pazol.l@husky.neu.edu 
  */
- class Application: public Printer {
+ class Application: public Sys {
     public:
 
          // TODO REMOVE

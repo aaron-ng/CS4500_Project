@@ -1,10 +1,10 @@
 #include <gtest/gtest.h>
 
-#include "../../src/element_column.h"
-#include "../../src/dataframe/column_type.h"
-#include "../../src/dataframe/modified_dataframe.h"
-#include "../../src/utils/dataframe_description.h"
-#include "../../src/kvstore/kvstore.h"
+#include "../../src/utils/datastructures/element_column.h"
+#include "../../src/utils/column_type.h"
+#include "../../src/dataframe/dataframe.h"
+#include "../../src/ea2/dataframe_description.h"
+#include "../../src/ea2/kvstore/kvstore.h"
 
 #define GT_TRUE(a)   ASSERT_EQ((a),true)
 #define GT_FALSE(a)  ASSERT_EQ((a),false)
@@ -65,8 +65,8 @@ TEST(W1, testGetWorks) { ASSERT_EXIT_ZERO(testGetWorks) }
 /*-----------------------------------------------------------------*/
 
 #define COLUMN_LEN 6
-const char columnTypes[] = {ColumnType::INT, ColumnType::STRING, ColumnType::STRING, ColumnType::BOOL, ColumnType::FLOAT, ColumnType::INT, '\0'};
-const char* columnNames[] = {"INT_COL", "STRING_COL", "STRING_COL_1", "BOOL_COL", "FLOAT_COL", "INT_COL_1"};
+const char columnTypes[] = {ColumnType::INT, ColumnType::STRING, ColumnType::STRING, ColumnType::BOOL, ColumnType::DOUBLE, ColumnType::INT, '\0'};
+const char* columnNames[] = {"INT_COL", "STRING_COL", "STRING_COL_1", "BOOL_COL", "DOUBLE_COL", "INT_COL_1"};
 
 void testSchemaConstructorWorks() {
     Schema schema(columnTypes);
@@ -113,49 +113,9 @@ void testColumnNameIndexWorks() {
     exit(0);
 }
 
-void testSchemaAddRowWorks() {
-    Schema schema(columnTypes);
-
-    String name0("ROW_NAME");
-    String name1("ROW_NAME_1");
-    schema.add_row(nullptr);
-    schema.add_row(&name0);
-    schema.add_row(&name1);
-
-    GT_TRUE(schema.width() == COLUMN_LEN);
-    GT_TRUE(schema.length() == 3);
-
-    GT_TRUE(schema.row_name(0) == nullptr);
-    GT_TRUE(schema.row_name(1)->equals(&name0));
-    GT_TRUE(schema.row_name(2)->equals(&name1));
-
-    exit(0);
-}
-
-void testSchemaFindRowNameWorks() {
-    Schema schema(columnTypes);
-
-    String name0("ROW_NAME");
-    String name1("ROW_NAME_1");
-    schema.add_row(nullptr);
-    schema.add_row(&name0);
-    schema.add_row(&name1);
-
-    GT_TRUE(schema.width() == COLUMN_LEN);
-    GT_TRUE(schema.length() == 3);
-
-    GT_TRUE(schema.row_idx(nullptr) == -1);
-    GT_TRUE(schema.row_idx(name0.c_str()) == 1);
-    GT_TRUE(schema.row_idx(name1.c_str()) == 2);
-
-    exit(0);
-}
-
 TEST(W2, testSchemaConstructorWorks) { ASSERT_EXIT_ZERO(testSchemaConstructorWorks) }
 TEST(W2, testSchemaAddColumnWorks) { ASSERT_EXIT_ZERO(testSchemaAddColumnWorks) }
 TEST(W2, testColumnNameIndexWorks) { ASSERT_EXIT_ZERO(testColumnNameIndexWorks) }
-TEST(W2, testSchemaAddRowWorks) { ASSERT_EXIT_ZERO(testSchemaAddRowWorks) }
-TEST(W2, testSchemaFindRowNameWorks) { ASSERT_EXIT_ZERO(testSchemaFindRowNameWorks) }
 
 /* End schema tests                                                */
 /*-----------------------------------------------------------------*/
@@ -235,79 +195,79 @@ TEST(W3, testIntSerialization) { ASSERT_EXIT_ZERO(testIntSerialization) }
 /* End IntColumn tests                                             */
 /*-----------------------------------------------------------------*/
 
-/* Start FloatColumn tests                                         */
+/* Start DoubleColumn tests                                         */
 /*-----------------------------------------------------------------*/
 
-#define FLOAT_VALUES 5
-const float floatValues[] {-1238.12323, 8439.3389, 0.0, 123.55555552, -9696.0010010};
+#define DOUBLE_VALUES 5
+const double doubleValues[] {-1238.12323, 8439.3389, 0.0, 123.55555552, -9696.0010010};
 
-void testFloatTypeWorks() {
-    GT_TRUE(FloatColumn().get_type() == FLOAT);
+void testDoubleTypeWorks() {
+    GT_TRUE(DoubleColumn().get_type() == DOUBLE);
     exit(0);
 }
 
-void testFloatVarArgsConstructorWorks() {
-    FloatColumn column(FLOAT_VALUES, floatValues[0], floatValues[1], floatValues[2], floatValues[3], floatValues[4]);
+void testDoubleVarArgsConstructorWorks() {
+    DoubleColumn column(DOUBLE_VALUES, doubleValues[0], doubleValues[1], doubleValues[2], doubleValues[3], doubleValues[4]);
 
-    GT_TRUE(column.size() == FLOAT_VALUES);
-    for (size_t i = 0; i < FLOAT_VALUES; i++) {
-        GT_TRUE(column.get(i) == floatValues[i]);
-    }
-
-    exit(0);
-}
-
-void testFloatPushBackWorks() {
-    FloatColumn column(FLOAT_VALUES, floatValues[0], floatValues[1], floatValues[2], floatValues[3], floatValues[4]);
-    for (size_t i = 0; i < FLOAT_VALUES; i++) {
-        column.push_back(floatValues[i]);
-    }
-
-    GT_TRUE(column.size() == FLOAT_VALUES * 2);
-    for (size_t i = 0; i < FLOAT_VALUES * 2; i++) {
-        GT_TRUE(column.get(i) == floatValues[i % FLOAT_VALUES]);
+    GT_TRUE(column.size() == DOUBLE_VALUES);
+    for (size_t i = 0; i < DOUBLE_VALUES; i++) {
+        GT_TRUE(column.get(i) == doubleValues[i]);
     }
 
     exit(0);
 }
 
-void testFloatSetWorks() {
-    FloatColumn column(FLOAT_VALUES, floatValues[0], floatValues[1], floatValues[2], floatValues[3], floatValues[4]);
-    for (size_t i = 0; i < FLOAT_VALUES; i++) {
-        column.set(i, floatValues[FLOAT_VALUES - i - 1]);
+void testDoublePushBackWorks() {
+    DoubleColumn column(DOUBLE_VALUES, doubleValues[0], doubleValues[1], doubleValues[2], doubleValues[3], doubleValues[4]);
+    for (size_t i = 0; i < DOUBLE_VALUES; i++) {
+        column.push_back(doubleValues[i]);
     }
 
-    GT_TRUE(column.size() == FLOAT_VALUES);
-    for (size_t i = 0; i < FLOAT_VALUES; i++) {
-        GT_TRUE(column.get(i) == floatValues[FLOAT_VALUES - i - 1]);
+    GT_TRUE(column.size() == DOUBLE_VALUES * 2);
+    for (size_t i = 0; i < DOUBLE_VALUES * 2; i++) {
+        GT_TRUE(column.get(i) == doubleValues[i % DOUBLE_VALUES]);
     }
 
     exit(0);
 }
 
-void testFloatSerialization() {
+void testDoubleSetWorks() {
+    DoubleColumn column(DOUBLE_VALUES, doubleValues[0], doubleValues[1], doubleValues[2], doubleValues[3], doubleValues[4]);
+    for (size_t i = 0; i < DOUBLE_VALUES; i++) {
+        column.set(i, doubleValues[DOUBLE_VALUES - i - 1]);
+    }
+
+    GT_TRUE(column.size() == DOUBLE_VALUES);
+    for (size_t i = 0; i < DOUBLE_VALUES; i++) {
+        GT_TRUE(column.get(i) == doubleValues[DOUBLE_VALUES - i - 1]);
+    }
+
+    exit(0);
+}
+
+void testDoubleSerialization() {
     Serializer serializer;
-    FloatColumn(FLOAT_VALUES, floatValues[0], floatValues[1], floatValues[2], floatValues[3], floatValues[4]).serialize(serializer);
+    DoubleColumn(DOUBLE_VALUES, doubleValues[0], doubleValues[1], doubleValues[2], doubleValues[3], doubleValues[4]).serialize(serializer);
 
     Deserializer deserializer(serializer.getSize(), serializer.getBuffer());
-    FloatColumn read;
+    DoubleColumn read;
     read.deserialize(deserializer);
 
-    GT_TRUE(read.size() == FLOAT_VALUES);
-    for (size_t i = 0; i < FLOAT_VALUES; i++) {
-        GT_TRUE(read.get(i) == floatValues[i]);
+    GT_TRUE(read.size() == DOUBLE_VALUES);
+    for (size_t i = 0; i < DOUBLE_VALUES; i++) {
+        GT_TRUE(read.get(i) == doubleValues[i]);
     }
 
     exit(0);
 }
 
-TEST(W4, testFloatTypeWorks) { ASSERT_EXIT_ZERO(testFloatTypeWorks) }
-TEST(W4, testFloatVarArgsConstructorWorks) { ASSERT_EXIT_ZERO(testFloatVarArgsConstructorWorks) }
-TEST(W4, testFloatPushBackWorks) { ASSERT_EXIT_ZERO(testFloatPushBackWorks) }
-TEST(W4, testFloatSetWorks) { ASSERT_EXIT_ZERO(testFloatSetWorks) }
-TEST(W4, testFloatSerialization) { ASSERT_EXIT_ZERO(testFloatSerialization) }
+TEST(W4, testDoubleTypeWorks) { ASSERT_EXIT_ZERO(testDoubleTypeWorks) }
+TEST(W4, testDoubleVarArgsConstructorWorks) { ASSERT_EXIT_ZERO(testDoubleVarArgsConstructorWorks) }
+TEST(W4, testDoublePushBackWorks) { ASSERT_EXIT_ZERO(testDoublePushBackWorks) }
+TEST(W4, testDoubleSetWorks) { ASSERT_EXIT_ZERO(testDoubleSetWorks) }
+TEST(W4, testDoubleSerialization) { ASSERT_EXIT_ZERO(testDoubleSerialization) }
 
-/* End FloatColumn tests                                           */
+/* End DoubleColumn tests                                           */
 /*-----------------------------------------------------------------*/
 
 /* Start BoolColumn tests                                          */
@@ -520,14 +480,14 @@ TEST(W7, testDataframeDescriptions) { ASSERT_EXIT_ZERO(testDataframeDescriptions
 
 /* Start KVStore tests                                                */
 /*-----------------------------------------------------------------*/
-const char columnTypes2[5] = {ColumnType::INT, ColumnType::STRING, ColumnType::BOOL, ColumnType::FLOAT, '\0'};
+const char columnTypes2[5] = {ColumnType::INT, ColumnType::STRING, ColumnType::BOOL, ColumnType::DOUBLE, '\0'};
 
 void testDataFrameEquality(DataFrame* df1, DataFrame* df2) {
     Schema s1 = df1->get_schema();
     Schema s2 = df2->get_schema();
 
     GT_TRUE(s1.width() == s2.width());
-    GT_TRUE(s1.length() == s2.length());
+    GT_TRUE(df1->nrows() == df2->nrows());
     GT_TRUE(df1->ncols() == df2->ncols());
     GT_TRUE(df1->nrows() == df2->nrows());
     for (int i = 0; i < s1.width(); i++) {
@@ -537,7 +497,7 @@ void testDataFrameEquality(DataFrame* df1, DataFrame* df2) {
         GT_TRUE(df1->get_int(0, i) == df2->get_int(0, i));
         GT_TRUE(strcmp(df1->get_string(1, i)->c_str(), df2->get_string(1, i)->c_str()) == 0);
         GT_TRUE(df1->get_bool(2, i) == df2->get_bool(2, i));
-        GT_TRUE(df1->get_float(3, i) == df2->get_float(3, i));
+        GT_TRUE(df1->get_double(3, i) == df2->get_double(3, i));
     }
 }
 
@@ -545,7 +505,7 @@ void testKVStoreMethods() {
     Schema schema(columnTypes2);
     DataFrame dataFrame(schema);
 
-    float f = 0.0;
+    double f = 0.0;
     char buffer[100];
     for (int i = 0; i < 100000; i++) {
         Row currRow(schema);
@@ -581,7 +541,7 @@ void testMultipleKVPut() {
     DataFrame dataFrame(schema);
     DataFrame dataFrame2(schema);
 
-    float f = 0.0;
+    double f = 0.0;
     char buffer[100];
     char buffer2[100];
     for (int i = 0; i < 100000; i++) {
@@ -596,13 +556,13 @@ void testMultipleKVPut() {
 
         Row currRow2(schema);
         int df2Int = i + 10;
-        float df2Float = f + 20.0;
+        double df2Double = f + 20.0;
         currRow2.set(0, df2Int);
         sprintf(buffer2, "DF2_ITEM%i", i);
         String currStr2(buffer2);
         currRow2.set(1, &currStr2);
         currRow2.set(2, true);
-        currRow2.set(3, df2Float);
+        currRow2.set(3, df2Double);
         dataFrame2.add_row(currRow2);
 
         f += 1.0;
@@ -635,7 +595,7 @@ void testMultipleKVPutDifferentNodes() {
     DataFrame dataFrame(schema);
     DataFrame dataFrame2(schema);
 
-    float f = 0.0;
+    double f = 0.0;
     char buffer[100];
     char buffer2[100];
     for (int i = 0; i < 100000; i++) {
@@ -650,13 +610,13 @@ void testMultipleKVPutDifferentNodes() {
 
         Row currRow2(schema);
         int df2Int = i + 10;
-        float df2Float = f + 20.0;
+        double df2Double = f + 20.0;
         currRow2.set(0, df2Int);
         sprintf(buffer2, "DF2_ITEM%i", i);
         String currStr2(buffer2);
         currRow2.set(1, &currStr2);
         currRow2.set(2, true);
-        currRow2.set(3, df2Float);
+        currRow2.set(3, df2Double);
         dataFrame2.add_row(currRow2);
 
         f += 1.0;
@@ -684,9 +644,31 @@ void testMultipleKVPutDifferentNodes() {
     exit(0);
 }
 
+void testStoreDoesntDeadlock() {
+    Schema schema(columnTypes2);
+    DataFrame dataFrame(schema);
+
+    Key k("hi", 0);
+
+    std::vector<std::thread> threads;
+    KVStore kvStore;
+
+    for (size_t i = 0; i < 100; i++) {
+        threads.emplace_back(std::thread([&k, &kvStore] {
+            kvStore.waitAndGet(k);
+        }));
+    }
+
+    kvStore.put(&dataFrame, k);
+
+    for (size_t i = 0; i < threads.size(); i++) { threads[i].join(); }
+    exit(0);
+}
+
 TEST(W8, testKVStoreMethods) { ASSERT_EXIT_ZERO(testKVStoreMethods) }
 TEST(W8, testMultipleKVPut) { ASSERT_EXIT_ZERO(testMultipleKVPut) }
 TEST(W8, testMultipleKVPutDifferentNodes) { ASSERT_EXIT_ZERO(testMultipleKVPutDifferentNodes) }
+TEST(W8, testStoreDoesntDeadlock) { ASSERT_EXIT_ZERO(testStoreDoesntDeadlock) }
 
 int main(int argc, char **argv) {
     testing::InitGoogleTest(&argc, argv);
