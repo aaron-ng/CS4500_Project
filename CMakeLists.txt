@@ -41,13 +41,18 @@ add_subdirectory(${CMAKE_CURRENT_BINARY_DIR}/googletest-src
         )
 
 find_package (Threads)
+string(REPLACE "-Winconsistent-missing-override" "" CUSTOM_FLAGS ${CMAKE_CXX_FLAGS})
+
 add_executable(main src/main.cpp src/ea2/kvstore/kvstore.cpp)
 target_link_libraries (main ${CMAKE_THREAD_LIBS_INIT})
 
-add_executable(map_test test/test-map.cpp)
-
-add_executable(network_test test/network/network_test.cpp)
-add_executable(personal_test_suite test/dataframe/personal_test_suite.cpp src/ea2/kvstore/kvstore.cpp)
-target_link_libraries (network_test ${CMAKE_THREAD_LIBS_INIT})
-
-target_link_libraries(personal_test_suite gtest)
+add_executable(tests src/ea2/kvstore/kvstore.cpp
+        test/test.cpp
+        test/test_dataframe.cpp
+        test/test_util.cpp
+        test/test_ea2.cpp
+        test/test_network.cpp
+        test/test_map.cpp
+        test/test_adapter.cpp
+)
+target_link_libraries (tests ${CMAKE_THREAD_LIBS_INIT} gtest)

@@ -1,9 +1,11 @@
+#include <gtest/gtest.h>
 #include <iostream>
 #include <thread>
 
-#include "../../src/network/shared/messages.h"
-#include "../../src/network/server.h"
-#include "../../src/network/client.h"
+#include "utils.h"
+#include "../src/network/shared/messages.h"
+#include "../src/network/server.h"
+#include "../src/network/client.h"
 
 /* Begin message tests ----------------------------------------------------------------*/
 
@@ -18,8 +20,10 @@ void testMessageHeader() {
     read.deserialize(deserializer);
 
     // Add the header size here because the constructor adds the header size
-    assert(read.length == 248 + MessageHeader::HEADER_SIZE);
-    assert(read.messageType == DATA);
+    GT_TRUE(read.length == 248 + MessageHeader::HEADER_SIZE);
+    GT_TRUE(read.messageType == DATA);
+
+    exit(0);
 }
 
 void testHandshakeMessage() {
@@ -29,8 +33,10 @@ void testHandshakeMessage() {
     Deserializer deserializer(serializer.getSize(), serializer.getBuffer());
     Handshake read;
     read.deserialize(deserializer);
-    assert(read.ip == 16777343);
-    assert(read.port == 25565);
+    GT_TRUE(read.ip == 16777343);
+    GT_TRUE(read.port == 25565);
+
+    exit(0);
 }
 
 void testTeardownMessage() {
@@ -40,6 +46,8 @@ void testTeardownMessage() {
     Deserializer deserializer(serializer.getSize(), serializer.getBuffer());
     Teardown read;
     read.deserialize(deserializer);
+
+    exit(0);
 }
 
 void testClientInformationMessage() {
@@ -50,11 +58,13 @@ void testClientInformationMessage() {
     Deserializer deserializer(serializer.getSize(), serializer.getBuffer());
     ClientInformation read;
     read.deserialize(deserializer);
-    assert(read.numClients == 2);
-    assert(read.information[0].ipAddress == 2602665218);
-    assert(read.information[0].portNum == 25565);
-    assert(read.information[1].ipAddress == 16777343);
-    assert(read.information[1].portNum == 35565);
+    GT_TRUE(read.numClients == 2);
+    GT_TRUE(read.information[0].ipAddress == 2602665218);
+    GT_TRUE(read.information[0].portNum == 25565);
+    GT_TRUE(read.information[1].ipAddress == 16777343);
+    GT_TRUE(read.information[1].portNum == 35565);
+
+    exit(0);
 }
 
 void testDataMessage() {
@@ -66,9 +76,10 @@ void testDataMessage() {
     Data read;
     read.deserialize(deserializer);
 
-    assert(read.length() == strlen(hello) + 1);
-    assert(!strcmp(hello, read.getData()));
+    GT_TRUE(read.length() == strlen(hello) + 1);
+    GT_TRUE(!strcmp(hello, read.getData()));
 
+    exit(0);
 }
 
 /* End message tests ------------------------------------------------------------------*/
@@ -87,6 +98,8 @@ void testSocketsCanConnectToEachOther() {
     listeningSocket.closeSocket();
     newSocket->closeSocket();
     delete newSocket;
+
+    exit(0);
 }
 
 void testSocketsCanSendData() {
@@ -105,14 +118,14 @@ void testSocketsCanSendData() {
 
     Deserializer deserializer = message->deserializer();
     handshake.deserialize(deserializer);
-    assert(handshake.ip == 2602665218);
-    assert(handshake.port == 25565);
+    GT_TRUE(handshake.ip == 2602665218);
+    GT_TRUE(handshake.port == 25565);
 
     connectingSocket.closeSocket();
     listeningSocket.closeSocket();
     newSocket->closeSocket();
-    delete newSocket;
-    delete message;
+
+    exit(0);
 }
 
 /* End socket tests -------------------------------------------------------------------*/
@@ -134,8 +147,8 @@ void testClientServer() {
         c1.poll();
     }
 
-    assert(c0.clientInformation().numClients == 2);
-    assert(c1.clientInformation().numClients == 2);
+    GT_TRUE(c0.clientInformation().numClients == 2);
+    GT_TRUE(c1.clientInformation().numClients == 2);
 
     server.close();
     serverThread.join();
@@ -143,19 +156,17 @@ void testClientServer() {
     c0.poll();
     c1.poll();
 
-    assert(!c0.connected());
-    assert(!c1.connected());
+    GT_TRUE(!c0.connected());
+    GT_TRUE(!c1.connected());
+
+    exit(0);
 }
 
-int main(int argc, char** argv) {
-    testMessageHeader();
-    testHandshakeMessage();
-    testTeardownMessage();
-    testClientInformationMessage();
-    testDataMessage();
-    testSocketsCanConnectToEachOther();
-    testSocketsCanSendData();
-    testClientServer();
-    std::cout << "Tests passed!" << std::endl;
-    return 0;
-}
+TEST(W4, testMessageHeader) { ASSERT_EXIT_ZERO(testMessageHeader) }
+TEST(W4, testHandshakeMessage) { ASSERT_EXIT_ZERO(testHandshakeMessage) }
+TEST(W4, testTeardownMessage) { ASSERT_EXIT_ZERO(testTeardownMessage) }
+TEST(W4, testClientInformationMessage) { ASSERT_EXIT_ZERO(testClientInformationMessage) }
+TEST(W4, testDataMessage) { ASSERT_EXIT_ZERO(testDataMessage) }
+TEST(W4, testSocketsCanConnectToEachOther) { ASSERT_EXIT_ZERO(testSocketsCanConnectToEachOther) }
+TEST(W4, testSocketsCanSendData) { ASSERT_EXIT_ZERO(testSocketsCanSendData) }
+TEST(W4, testClientServer) { ASSERT_EXIT_ZERO(testClientServer) }

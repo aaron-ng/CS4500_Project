@@ -4,6 +4,7 @@
 
 #include "valueproducer.h"
 #include "../../utils/column_type.h"
+#include "../../utils/instructor-provided/string.h"
 
 /** A value producer for a string */
 class StringProducer: public ValueProducer {
@@ -73,8 +74,8 @@ bool isValidNumber(const std::string& str, bool allowDecimals = false) {
     return true;
 }
 
-/** A class that produces a FloatValue */
-class FloatProducer : public ValueProducer {
+/** A class that produces a DoubleValue */
+class DoubleProducer : public ValueProducer {
     public:
 
         /**
@@ -86,7 +87,7 @@ class FloatProducer : public ValueProducer {
          */
         virtual void produce(const std::string& str, Row& row, size_t idx) override {
             if (!isValidNumber(str, true)) { /* EMPTY */ }
-            try { row.set(idx, (float)atof(str.c_str())); }
+            try { row.set(idx, atof(str.c_str())); }
             catch (std::exception e) { /* EMPTY */ }
         }
 

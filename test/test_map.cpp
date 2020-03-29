@@ -1,12 +1,8 @@
-#include <iostream>
+#include <gtest/gtest.h>
+
+#include "utils.h"
 #include "../src/utils/datastructures/map.h"
 #include "../src/utils/instructor-provided/string.h"
-
-
-void FAIL() {   exit(1);    }
-void t_true(bool p) { if (!p) FAIL(); }
-void t_false(bool p) { if (p) FAIL(); }
-
 
 /**
  * test cases for put()
@@ -24,6 +20,8 @@ void test1() {
     delete key_2;
     delete val_1;
     delete val_2;
+
+    exit(0);
 }
 
 /**
@@ -36,14 +34,16 @@ void test2() {
     String * val_1 = new String("1");
     String * val_2 = new String("2");
     h1->put(key_1, val_1);
-    t_true(h1->get_size() == 1);
+    GT_TRUE(h1->get_size() == 1);
     h1->put(key_1, val_2);
-    t_true(h1->get_size() == 1);
-    t_false(val_1 -> equals(h1->get(key_1)));
+    GT_TRUE(h1->get_size() == 1);
+    GT_FALSE(val_1 -> equals(h1->get(key_1)));
 
     delete key_1;
     delete val_1;
     delete val_2;
+
+    exit(0);
 }
 
 /**
@@ -58,12 +58,14 @@ void test3() {
     String * val_2 = new String("2");
     h1->put(key_1, val_1);
     h1->put(key_2, val_2);
-    t_true(h1->get(key_1)->equals(val_1));
-    t_true(h1->get(key_2)->equals(val_2));
+    GT_TRUE(h1->get(key_1)->equals(val_1));
+    GT_TRUE(h1->get(key_2)->equals(val_2));
     delete key_1;
     delete key_2;
     delete val_1;
     delete val_2;
+
+    exit(0);
 }
 
 /**
@@ -71,8 +73,10 @@ void test3() {
  */
 void test4() {
     Map* h1 = new Map();
-    t_true(h1 -> get(new String("1")) == nullptr);
+    GT_TRUE(h1 -> get(new String("1")) == nullptr);
     delete h1;
+
+    exit(0);
 }
 
 /**
@@ -88,15 +92,17 @@ void test5() {
     String * key_3 = new String("NEU");
     h1->put(key_1, val_1);
     h1->put(key_2, val_2);
-    t_true(h1->contains_key(key_1));
-    t_true(h1->contains_key(key_2));
-    t_false(h1->contains_key(key_3));
+    GT_TRUE(h1->contains_key(key_1));
+    GT_TRUE(h1->contains_key(key_2));
+    GT_FALSE(h1->contains_key(key_3));
     delete key_1;
     delete key_2;
     delete val_1;
     delete val_2;
     delete key_3;
     delete h1;
+
+    exit(0);
 }
 
 
@@ -119,7 +125,7 @@ void test6() {
     std::vector<Entry*>& entries = h1->entrySet();
 
     for (int i=0; i< 3; i++) {
-        t_true(val_1 -> equals(entries[i]->value) || val_2 -> equals(entries[i]->value) || val_3 -> equals(entries[i]->value));
+        GT_TRUE(val_1 -> equals(entries[i]->value) || val_2 -> equals(entries[i]->value) || val_3 -> equals(entries[i]->value));
     }
     delete key_1;
     delete key_2;
@@ -128,6 +134,8 @@ void test6() {
     delete val_2;
     delete val_3;
     delete h1;
+
+    exit(0);
 }
 
 static const int _stressTestVal = 10000;
@@ -147,7 +155,7 @@ void mapStressTest() {
         h1->put(keyStr, valStr);
     }
 
-    t_true(h1->get_size() == _stressTestVal);
+    GT_TRUE(h1->get_size() == _stressTestVal);
 
     for (int i = 0; i < _stressTestVal; i++) {
         sprintf(buffer, "test%i", i);
@@ -157,21 +165,21 @@ void mapStressTest() {
         String *valStr = new String(buffer);
 
         // Test contain
-        t_true(h1->contains_key(keyStr));
+        GT_TRUE(h1->contains_key(keyStr));
 
         // Test get
         String* getString = dynamic_cast<String*>(h1->get(keyStr));
-        t_true(getString != nullptr);
-        t_true(getString->equals(valStr));
+        GT_TRUE(getString != nullptr);
+        GT_TRUE(getString->equals(valStr));
     }
+
+    exit(0);
 }
 
-int main() {
-    test1();
-    test2();
-    test3();
-    test5();
-    test6();
-	mapStressTest();
-    return 0;
-}
+TEST(W5, test1) { ASSERT_EXIT_ZERO(test1) }
+TEST(W5, test2) { ASSERT_EXIT_ZERO(test2) }
+TEST(W5, test3) { ASSERT_EXIT_ZERO(test3) }
+TEST(W5, test4) { ASSERT_EXIT_ZERO(test4) }
+TEST(W5, test5) { ASSERT_EXIT_ZERO(test5) }
+TEST(W5, test6) { ASSERT_EXIT_ZERO(test6) }
+TEST(W5, mapStressTest) { ASSERT_EXIT_ZERO(mapStressTest) }

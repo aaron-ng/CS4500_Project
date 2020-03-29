@@ -1,5 +1,9 @@
 #pragma once
 
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
+
 /** A union that is used to store all of the kinds of data that columns need to support
  * Written by: pazol.l@husky.neu.edu and ng.h@husky.neu.edu
  */

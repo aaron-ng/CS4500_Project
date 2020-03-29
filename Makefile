@@ -3,7 +3,7 @@ compile:
 	cd build && cmake .. && make
 
 test: compile
-	./build/main
+	./build/tests &> /dev/null; if [ $$? -eq 0 ] ; then echo "Tests passed"; else echo "Tests failed"; fi
 
 valgrind: compile
 	valgrind --leak-check=yes ./build/main

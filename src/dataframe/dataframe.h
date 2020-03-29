@@ -729,28 +729,6 @@ public:
         return newFrame;
     }
 
-    /** The desired width of the columns for printing out the data frame */
-    const size_t _COL_WIDTH = 15;
-
-    /** Print the dataframe in SoR format to standard output. */
-    void print() {
-        // Move the column names over so they wont be on top of the row names
-        std::cout << std::setw(_COL_WIDTH) << " ";
-        _printColumnNames();
-        std::cout << std::endl;
-
-        for (size_t row = 0; row < nrows(); row++) {
-            std::cout << " ";
-            for (size_t col = 0; col < ncols(); col++) {
-                _printColumnEntry(col, row);
-                if (col != ncols() - 1) { std::cout << " "; }
-            }
-
-            if (row != nrows() - 1) { std::cout << std::endl; }
-        }
-
-    }
-
     /**
          * Creates a new dataframe from one value. The resulting dataframe will have one column
          * and be stored in the KV store under the given key
@@ -913,10 +891,10 @@ public:
     void fromArray(Key* key, KVStore* kv, size_t count, String** values) {
         const char charSchema[2] = {STRING, '\0'};
         Schema schema(charSchema);
-        DataFrame* dataFrame = new DataFrame(schema);
+        DataFrame *dataFrame = new DataFrame(schema);
         Row row(schema);
 
-        for(int i = 0; i < count; i++) {
+        for (int i = 0; i < count; i++) {
             row.set(0, values[i]);
             dataFrame->add_row(row);
 
@@ -924,52 +902,6 @@ public:
         kv->put(dataFrame, *key);
 
         delete dataFrame;
-    }
-
-    /**
-     * Prints the column names in a row, separated by spaces. If the column name is nullptr, the index
-     * of the column is printed. Prints to std out
-     */
-    void _printColumnNames() {
-        for (size_t i = 0; i < _schema.width(); i++) {
-            String* name = _schema.col_name(i);
-            if (!name) { std::cout << std::left << std::setw(_COL_WIDTH) << i; }
-            else std::cout << std::left << std::setw(_COL_WIDTH) << name->c_str();
-
-            if (i != _schema.width() - 1) { std::cout << " "; }
-        }
-    }
-
-    /**
-     * Prints the entry at the given column to standard out
-     * @param col The index of the column to print of
-     * @param row The index of the row in the given column to print
-     */
-    void _printColumnEntry(size_t col, size_t row) {
-        Column* column = getColumn(col);
-        switch (_schema.col_type(col)) {
-            case INT: {
-                IntColumn* intColumn = column->as_int();
-                if (intColumn) { std::cout << std::left << std::setw(_COL_WIDTH) << intColumn->get(row); }
-                break;
-            }
-            case BOOL: {
-                BoolColumn* boolColumn = column->as_bool();
-                if (boolColumn) { std::cout << std::left << std::setw(_COL_WIDTH) << boolColumn->get(row); }
-                break;
-            }
-            case DOUBLE: {
-                DoubleColumn* doubleColumn = column->as_double();
-                if (doubleColumn) { std::cout << std::left << std::setw(_COL_WIDTH) << doubleColumn->get(row); }
-                break;
-            }
-            case STRING: {
-                StringColumn* stringColumn = column->as_string();
-                if (stringColumn) { std::cout << std::left << std::setw(_COL_WIDTH) << stringColumn->get(row)->c_str(); }
-                break;
-            }
-            default: return;
-        }
     }
 
     /**

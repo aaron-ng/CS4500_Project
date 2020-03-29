@@ -13,7 +13,7 @@
 class ValueFactory {
     private:
         /** The producers used to produce values in order from highest to lowest priority */
-        const std::vector<ValueProducer*> producers = { new BoolProducer(), new IntProducer(), new FloatProducer(), new StringProducer() };
+        const std::vector<ValueProducer*> producers = {new BoolProducer(), new IntProducer(), new DoubleProducer(), new StringProducer() };
 
         /** The producers in producers based on the type of value they produce */
         std::vector<ValueProducer*> orderedProducers;
