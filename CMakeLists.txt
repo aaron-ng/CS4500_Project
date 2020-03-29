@@ -47,8 +47,7 @@ target_link_libraries (main ${CMAKE_THREAD_LIBS_INIT})
 add_executable(map_test test/test-map.cpp)
 
 add_executable(network_test test/network/network_test.cpp)
+add_executable(personal_test_suite test/dataframe/personal_test_suite.cpp src/kvstore/kvstore.cpp)
 target_link_libraries (network_test ${CMAKE_THREAD_LIBS_INIT})
-
-add_executable(personal_test_suite test/dataframe/personal_test_suite.cpp)
 
 target_link_libraries(personal_test_suite gtest)
