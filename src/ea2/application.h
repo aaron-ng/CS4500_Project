@@ -14,15 +14,16 @@
          size_t _TEMP;
 
         /** The distributed key store that this application is connected to */
-        KVStore kv;
+        KVStore& kv;
 
         /**
          * Creates a new application that runs on a distributed key store. 
          * This constructor will rendezvous with the central server.
          * @param idx An unused parameter so far. The client ID will be assigned by the server,
          * but the example code supplies this param
+         * @param kv The KV store to use for this application
          */
-        Application(size_t idx) { _TEMP = idx; }
+        Application(size_t idx, KVStore& kv): kv(kv) { _TEMP = idx; }
 
         /**
          * Provides the node identifier of the running application. This is determined

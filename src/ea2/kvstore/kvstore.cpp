@@ -4,9 +4,6 @@
 #include "../../dataframe/dataframe.h"
 #include "../dataframe_description.h"
 
-static KBStore byteStores[NUM_KV_STORES];
-static KVStore stores[NUM_KV_STORES];
-
 KVStore::~KVStore() {
     std::vector<Entry*>& entries = _map.entrySet();
     for (size_t i = 0; i < entries.size(); i++) {
@@ -27,21 +24,17 @@ KVStore::~KVStore() {
  * @param key The key of the dataframe to return
  */
 DataFrame* KVStore::get(Key& key) {
-    DataframeDescription* desc = (DataframeDescription*)stores[key.getNode()]._map.get(&key);
+    DataframeDescription* desc = (DataframeDescription*)_stores[key.getNode()]->_map.get(&key);
 
-    Schema s("");
+    Schema s(desc->schema->c_str());
     DataFrame* dataFrame = new DataFrame(s);
-    for (size_t i = 0; i < desc->numColumns; i++) {
-        Column* newColumn = allocateColumnOfType(desc->columns[i]->type);
 
+    for (size_t i = 0; i < desc->numColumns; i++) {
         Key* columnKey = desc->columns[i]->location;
-        ByteArray* bytes = byteStores[columnKey->getNode()].get(*columnKey);
+        ByteArray* bytes = _stores[columnKey->getNode()]->_byteStore.get(*columnKey);
 
         Deserializer deserializer( bytes->length, bytes->contents);
-        newColumn->deserialize(deserializer);
-        dataFrame->add_column(newColumn, nullptr);
-
-        delete newColumn;
+        dataFrame->getColumn(i)->deserialize(deserializer);
     }
 
     return dataFrame;
@@ -63,7 +56,7 @@ DataFrame* KVStore::waitAndGet(Key& key) {
     // thus there will be a deadlock. By using this method below, there is one lock and unlock so this problem doesn't
     // exist.
 
-    KVStore& store = stores[key.getNode()];
+    KVStore& store = *_stores[key.getNode()];
     store._statusMutex.lock();
 
     if (store._map.contains_key(&key)) {
@@ -94,7 +87,7 @@ void KVStore::put(DataFrame* dataframe, Key& key) {
 
     // TODO CHANGE FOR NETWORKING
     for (size_t i = 0; i < dataframe->ncols(); i++) {
-        size_t node = i % NUM_KV_STORES;
+        size_t node = i % _stores.size();
 
         String* name = _keyFor(key, i);
         Key newKey(name->c_str(), node);
@@ -102,14 +95,14 @@ void KVStore::put(DataFrame* dataframe, Key& key) {
 
         Serializer serializer;
         dataframe->getColumn(i)->serialize(serializer);
-        byteStores[node].put(serializer.getUnownedBuffer(), serializer.getSize(), newKey);
+        _stores[node]->_byteStore.put(serializer.getUnownedBuffer(), serializer.getSize(), newKey);
     }
 
     // TODO use networking to put
-    KVStore& store = stores[key.getNode()];
+    KVStore& store = *_stores[key.getNode()];
     store._statusMutex.lock();
 
-    store._map.put(new Key(key.getName(), key.getNode()), desc);
+    store._map.put(key.clone(), desc);
     Ready* ready = dynamic_cast<Ready*>(store._statuses.get(&key));
     if (ready) { ready->isReady = true; }
 
@@ -131,7 +124,7 @@ DataframeDescription* KVStore::_descFrom(DataFrame* dataframe, Key& key) const {
     ColumnDescription** descriptions = new ColumnDescription*[columns];
 
     for (size_t i = 0; i < columns; i++) {
-        size_t node = i % NUM_KV_STORES;
+        size_t node = i % _stores.size();
 
         String* name = _keyFor(key, i);
         Key newKey(name->c_str(), node);

@@ -10,10 +10,6 @@
 #include "../../utils/key.h"
 #include "../kbstore.h"
 
-// TODO remove
-/** The temporary number of KV store nodes. This should be the number of currently connected clients when networking is done */
-#define NUM_KV_STORES 5
-
 /**
  * The distributed key value store. This will connect to the central rendezvous server
  * to register it in the constructor.
@@ -30,6 +26,13 @@ public:
 
     /** Mutex for _statuses */
     std::mutex _statusMutex;
+
+    /** The store for raw bytes under keys */
+    KBStore _byteStore;
+
+    /** References to all of the KV stores. TODO REMOVE */
+    std::vector<KVStore*> _stores;
+
 
     ~KVStore();
 

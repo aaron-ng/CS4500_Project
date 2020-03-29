@@ -63,6 +63,12 @@ public:
         }
     }
 
+    ~Map() {
+        for (Entry* entry : _entrySet) {
+            delete entry;
+        }
+    }
+
 public:
     /**
      * Returns the number of key-value pairs in this map.

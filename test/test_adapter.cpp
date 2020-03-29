@@ -1,8 +1,8 @@
 #include <gtest/gtest.h>
+#include <math.h>
 
 #include "utils.h"
 #include "../src/adapter/values/valueproducers.h"
-#include "../src/dataframe/dataframe.h"
 #include "../src/adapter/values/valuefactory.h"
 #include "../src/adapter/sor/lineparser.h"
 

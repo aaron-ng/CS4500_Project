@@ -58,7 +58,10 @@ public:
         if (_size / _CHUNK_SIZE == _numChunks) {
             Element** newStorage = new Element*[_numChunks + 1];
             newStorage[_numChunks] = new Element[_CHUNK_SIZE];
+
             memcpy(newStorage, _storage, sizeof(Element*) * _numChunks);
+            delete[] _storage;
+
             _storage = newStorage;
             _numChunks++;
         }

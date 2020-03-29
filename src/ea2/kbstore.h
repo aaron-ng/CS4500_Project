@@ -38,9 +38,8 @@ class KBStore {
         ~KBStore() {
             std::vector<Entry*>& entries = _map.entrySet();
             for (size_t i = 0; i < _map.get_size(); i++) {
-                Entry* entry = dynamic_cast<Entry*>(entries[i]);
-                delete entry->key;
-                delete entry->value;
+                delete entries[i]->key;
+                delete entries[i]->value;
             }
         }
 
@@ -63,6 +62,6 @@ class KBStore {
          * @param key The key to store the buffer under
          */
         void put(const char *contents, size_t length, Key& key) {
-            _map.put(new Key(key.getName(), key.getNode()), new ByteArray(contents, length));
+            _map.put(key.clone(), new ByteArray(contents, length));
         }
 };

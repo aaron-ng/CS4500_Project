@@ -13,7 +13,7 @@ Key check("ck",0);
 class Demo : public Application {
     public:
 
-        Demo(size_t idx): Application(idx) {}
+        Demo(size_t idx, KVStore& kv): Application(idx, kv) {}
 
         virtual void _run() override {
             switch(this_node()) {
@@ -56,17 +56,24 @@ class Demo : public Application {
 
 int main(int argc, char** argv) {
 
+    std::vector<KVStore*> stores = { new KVStore(), new KVStore(), new KVStore() };
     std::vector<std::thread> threads;
-    for (int i = 0; i < 3; i++) {
-        // TEMP code that uses C++
-        threads.push_back(std::thread([i]() {
-            Demo demo(i);
+
+    for (int i = 0; i < stores.size(); i++) {
+        stores[i]->_stores = stores;
+
+        threads.push_back(std::thread([i, &stores]() {
+            Demo demo(i, *stores[i]);
             demo._run();
         }));
     }
 
     for (int i = 0; i < 3; i++) {
         threads[i].join();
+    }
+
+    for (int i = 0; i < 3; i++) {
+        delete stores[i];
     }
 
     return 0;
