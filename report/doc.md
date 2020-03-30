@@ -20,9 +20,6 @@ The EU2 system is distributed system that will be used for large scale data anal
 `Key`
 - Stores the home node and the name of an entry in the distributed key store
 
-`Printer`
-- Provides some syntactic sugar for easier printing to standard out
-
 `Application`
 - Manages lifecyle of the KVStore
 - Provides a 'main' like run method
