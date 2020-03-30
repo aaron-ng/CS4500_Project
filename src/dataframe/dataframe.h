@@ -660,77 +660,6 @@ public:
     /** The number of columns in the dataframe.*/
     size_t ncols() { return _columns.size(); }
 
-    /** Visit rows in order */
-    void map(Rower& r) { _map(&r, 0, nrows()); }
-
-    /**
-     * Visits rows in order, but only elements in [startIdx, endIdx)
-     * @param r The rower to use to visit rows
-     * @param startIdx The start index (inclusive)
-     * @param endIdx The end index (exclusive)
-     */
-    void _map(Rower* r, size_t startIdx, size_t endIdx) {
-        Row row(_schema);
-        for (size_t idx = startIdx; idx < endIdx; idx++) {
-            _fillRow(row, idx);
-            r->accept(row);
-            fill_row(idx, row);
-        }
-    }
-
-    /** The number of threads to spawn during a pmap implementation */
-    static const size_t _WORKGROUPS = 4;
-
-    /** This method clones the Rower and executes the map in parallel. Join is
-     * used at the end to merge the results. If the rower has not properly implemented copy, the program exits */
-     void pmap(Rower& r) {
-        if (nrows() < 4) { map(r); return; }
-
-        // Determine how many elements each workgroup should have. The remainder is dealt with by the last workgroup,
-        // which is also the current thread
-        size_t elementsPerWorkgroup = nrows() / _WORKGROUPS;
-
-        std::thread threads[_WORKGROUPS - 1];
-        Rower* rowers[_WORKGROUPS - 1];
-        for (size_t i = 0; i < _WORKGROUPS - 1; i++) {
-            rowers[i] = dynamic_cast<Rower*>(r.clone());
-            if (!rowers[i]) {
-                std::cout << "Rower must implement clone properly" << std::endl;
-                exit(-1);
-            }
-
-            // Divide the work up between _WORKGROUPS - 1 threads
-            size_t startIndex = i * elementsPerWorkgroup;
-            size_t endIndex = startIndex + elementsPerWorkgroup;
-
-            threads[i] = std::thread(&DataFrame::_map, this, rowers[i], startIndex, endIndex);
-        }
-
-        // The current thread should cover the last workgroup, which goes to the last element to account for a length
-        // not divisible by _WORKGROUPS
-        _map(&r, (_WORKGROUPS - 1) * elementsPerWorkgroup, nrows());
-        for (size_t i = 0; i < _WORKGROUPS - 1; i++) {
-            threads[i].join();
-            r.join_delete(rowers[i]);
-        }
-     }
-
-    /** Create a new dataframe, constructed from rows for which the given Rower
-      * returned true from its accept method. */
-    DataFrame* filter(Rower& r) {
-        DataFrame* newFrame = new DataFrame(*this);
-        Row row(_schema);
-
-        for (size_t idx = 0; idx < nrows(); idx++) {
-            _fillRow(row, idx);
-            if (r.accept(row)) {
-                newFrame->add_row(row);
-            }
-        }
-
-        return newFrame;
-    }
-
     /**
      * Creates a new dataframe from one value. The resulting dataframe will have one column
      * and be stored in the KV store under the given key
@@ -772,7 +701,9 @@ public:
      * @param value The value to put into the dataframe
      */
     static void fromScalar(Key* key, KVStore* kv, String* value) {
-        _fromScalar(key, kv, value, STRING);
+        // Copy the string because the dataframe will own it and delete it
+        String* copy = value->clone();
+        _fromScalar(key, kv, copy, STRING);
     }
 
     /**
@@ -839,8 +770,15 @@ public:
      * @param count The number of items in values
      * @param values The values to put into the dataframe
      */
-    void fromArray(Key* key, KVStore* kv, size_t count, String** values) {
-        _fromArray(key, kv, count, values, STRING);
+    static void fromArray(Key* key, KVStore* kv, size_t count, String** values) {
+        // Copy the values since the dataframe will own the strings and delete them once its in the store
+        String** copy = new String*[count];
+        for (size_t i = 0; i < count; i++) {
+            copy[i] = values[i]->clone();
+        }
+
+        _fromArray(key, kv, count, copy, STRING);
+        delete[] copy;
     }
 
     /**

@@ -41,7 +41,6 @@ add_subdirectory(${CMAKE_CURRENT_BINARY_DIR}/googletest-src
         )
 
 find_package (Threads)
-string(REPLACE "-Winconsistent-missing-override" "" CUSTOM_FLAGS ${CMAKE_CXX_FLAGS})
 
 add_executable(main src/main.cpp src/ea2/kvstore/kvstore.cpp)
 target_link_libraries (main ${CMAKE_THREAD_LIBS_INIT})

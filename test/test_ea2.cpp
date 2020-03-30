@@ -222,7 +222,129 @@ void testStoreDoesntDeadlock() {
     exit(0);
 }
 
+void testFromArray() {
+    std::vector<KVStore*> stores = { new KVStore(), new KVStore(), new KVStore() };
+    for (size_t i = 0; i < stores.size(); i++) {
+        stores[i]->_stores = stores;
+    }
+
+    KVStore& kvStore = *stores[0];
+
+    Key d("DOUBLE", 0);
+    Key i("INT", 0);
+    Key b("BOOL", 0);
+    Key s("STRING", 0);
+
+    double ds[] = { 12.0, -231.22, 293939.12378 };
+    int is[] = { 12, -231, 293939 };
+    bool bs[] = { false, true, false };
+    String* ss[] = { new String("HI"), new String("BYE"), new String("ASDHJKAHSJKDHJK") };
+
+    DataFrame::fromArray(&d, &kvStore, 3, ds);
+    DataFrame::fromArray(&i, &kvStore, 3, is);
+    DataFrame::fromArray(&b, &kvStore, 3, bs);
+    DataFrame::fromArray(&s, &kvStore, 3, ss);
+
+    DataFrame* dd = kvStore.get(d);
+    DataFrame* id = kvStore.get(i);
+    DataFrame* bd = kvStore.get(b);
+    DataFrame* sd = kvStore.get(s);
+
+    for (size_t i = 0; i < 3; i++) {
+        GT_TRUE(dd->get_double(0, i) == ds[i]);
+        GT_TRUE(id->get_int(0, i) == is[i]);
+        GT_TRUE(bd->get_bool(0, i) == bs[i]);
+        GT_TRUE(sd->get_string(0, i)->equals(ss[i]));
+    }
+
+    GT_TRUE(dd->ncols() == 1);
+    GT_TRUE(dd->nrows() == 3);
+
+    GT_TRUE(id->ncols() == 1);
+    GT_TRUE(id->nrows() == 3);
+
+    GT_TRUE(bd->ncols() == 1);
+    GT_TRUE(bd->nrows() == 3);
+
+    GT_TRUE(sd->ncols() == 1);
+    GT_TRUE(sd->nrows() == 3);
+
+    delete dd;
+    delete id;
+    delete bd;
+    delete sd;
+
+    for (size_t i = 0; i < 3; i++) {
+        delete ss[i];
+    }
+
+    for (size_t i = 0; i < stores.size(); i++) {
+        delete stores[i];
+    }
+
+    exit(0);
+}
+
+void testFromScalar() {
+    std::vector<KVStore*> stores = { new KVStore(), new KVStore(), new KVStore() };
+    for (size_t i = 0; i < stores.size(); i++) {
+        stores[i]->_stores = stores;
+    }
+
+    KVStore& kvStore = *stores[0];
+
+    Key d("DOUBLE", 0);
+    Key i("INT", 0);
+    Key b("BOOL", 0);
+    Key s("STRING", 0);
+
+    double dv = 4848439.324234;
+    int iv = -458930495;
+    bool bv = true;
+    String sv("Hello");
+
+    DataFrame::fromScalar(&d, &kvStore, dv);
+    DataFrame::fromScalar(&i, &kvStore, iv);
+    DataFrame::fromScalar(&b, &kvStore, bv);
+    DataFrame::fromScalar(&s, &kvStore, &sv);
+
+    DataFrame* dd = kvStore.get(d);
+    DataFrame* id = kvStore.get(i);
+    DataFrame* bd = kvStore.get(b);
+    DataFrame* sd = kvStore.get(s);
+
+    GT_TRUE(dd->get_double(0, 0) == dv);
+    GT_TRUE(id->get_int(0, 0) == iv);
+    GT_TRUE(bd->get_bool(0, 0) == bv);
+    GT_TRUE(sd->get_string(0, 0)->equals(&sv));
+
+    GT_TRUE(dd->ncols() == 1);
+    GT_TRUE(dd->nrows() == 1);
+
+    GT_TRUE(id->ncols() == 1);
+    GT_TRUE(id->nrows() == 1);
+
+    GT_TRUE(bd->ncols() == 1);
+    GT_TRUE(bd->nrows() == 1);
+
+    GT_TRUE(sd->ncols() == 1);
+    GT_TRUE(sd->nrows() == 1);
+
+    delete dd;
+    delete id;
+    delete bd;
+    delete sd;
+
+    for (size_t i = 0; i < stores.size(); i++) {
+        delete stores[i];
+    }
+
+    exit(0);
+}
+
 TEST(W3, testKVStoreMethods) { ASSERT_EXIT_ZERO(testKVStoreMethods) }
 TEST(W3, testMultipleKVPut) { ASSERT_EXIT_ZERO(testMultipleKVPut) }
 TEST(W3, testMultipleKVPutDifferentNodes) { ASSERT_EXIT_ZERO(testMultipleKVPutDifferentNodes) }
 TEST(W3, testStoreDoesntDeadlock) { ASSERT_EXIT_ZERO(testStoreDoesntDeadlock) }
+TEST(W3, testFromArray) { ASSERT_EXIT_ZERO(testFromArray) }
+TEST(W3, testFromScalar) { ASSERT_EXIT_ZERO(testFromScalar) }

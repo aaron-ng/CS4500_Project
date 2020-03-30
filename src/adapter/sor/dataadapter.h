@@ -8,7 +8,7 @@
 #include "../values/valuefactory.h"
 
 /** A class that will build a Sor schema from a stream */
-class SchemaBuilder {
+class DataAdapter {
     private:
 
         /** Object used to tokenize the SoR lines */
@@ -19,7 +19,7 @@ class SchemaBuilder {
 
     public:
 
-        SchemaBuilder() : lineParser(), valueFactory() {}
+        DataAdapter() : lineParser(), valueFactory() {}
 
         /**
          * Builds a dataframe from a file. This will scan over the first 500 lines, or the entire file, whichever is smaller.

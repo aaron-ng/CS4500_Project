@@ -5,6 +5,7 @@
 #include "../src/adapter/values/valueproducers.h"
 #include "../src/adapter/values/valuefactory.h"
 #include "../src/adapter/sor/lineparser.h"
+#include "../src/adapter/sor/dataadapter.h"
 
 /* Start value producer tests                                      */
 /*-----------------------------------------------------------------*/
@@ -246,6 +247,39 @@ void testParseTokens() {
     exit(0);
 }
 
+void testFile() {
+    DataAdapter adapter;
+
+    FILE* f = fopen("../data/data.sor", "r");
+    DataFrame* dataFrame = adapter.build(f);
+
+    fclose(f);
+
+    GT_TRUE(dataFrame->get_schema().col_type(0) == STRING);
+    GT_TRUE(dataFrame->get_schema().col_type(1) == STRING);
+    GT_TRUE(dataFrame->get_schema().col_type(2) == INT);
+    GT_TRUE(dataFrame->get_schema().col_type(3) == DOUBLE);
+    GT_TRUE(dataFrame->get_schema().col_type(4) == BOOL);
+
+    for (size_t i = 0; i < 6; i++) {
+        String e0(!(i % 2) ? "a" : "10");
+        String e1(!(i % 2) ? "hello" : "bye");
+        int e2 = !(i % 2) ? 25 : 5;
+        double e3 = !(i % 2) ? 36.0 : 3;
+        bool e4 = !(i % 2);
+
+        GT_TRUE(e0.equals(dataFrame->get_string(0, i)));
+        GT_TRUE(e1.equals(dataFrame->get_string(1, i)));
+        GT_TRUE(e2 == dataFrame->get_int(2, i));
+        GT_TRUE(fabs(e3 - dataFrame->get_double(3, i)) < 0.005);
+        GT_TRUE(e4 == dataFrame->get_bool(4, i));
+    }
+
+    delete dataFrame;
+
+    exit(0);
+}
+
 
 TEST(W6, testStringProducer) { ASSERT_EXIT_ZERO(testStringProducer) }
 TEST(W6, testIsValidNumber) { ASSERT_EXIT_ZERO(testIsValidNumber) }
@@ -255,3 +289,4 @@ TEST(W6, testBoolProducer) { ASSERT_EXIT_ZERO(testBoolProducer) }
 TEST(W6, testGetSchema) { ASSERT_EXIT_ZERO(testGetSchema) }
 TEST(W6, testPopulateRow) { ASSERT_EXIT_ZERO(testPopulateRow) }
 TEST(W6, testParseTokens) { ASSERT_EXIT_ZERO(testParseTokens) }
+TEST(W6, testFile) { ASSERT_EXIT_ZERO(testFile) }
