@@ -7,18 +7,23 @@
 /*-----------------------------------------------------------------*/
 
 void testColumnDescription() {
-    Key k("HELLO", 21);
-    Serializer s;
+    Key** keys = new Key*[2];
+    keys[0] = new Key("HELLO", 21);
+    keys[1] = new Key("BYE", 11);
 
-    ColumnDescription(k, INT).serialize(s);
+    Serializer s;
+    ColumnDescription(keys, 2, 25, INT).serialize(s);
 
     Deserializer deserializer(s.getSize(), s.getBuffer());
     ColumnDescription read;
     read.deserialize(deserializer);
 
     GT_TRUE(read.type == INT);
-    GT_TRUE(!strcmp(read.location->getName(), k.getName()));
-    GT_TRUE(read.location->getNode() == k.getNode());
+    GT_TRUE(read.chunks == 2);
+    GT_TRUE(!strcmp(read.keys[0]->getName(), "HELLO"));
+    GT_TRUE(!strcmp(read.keys[1]->getName(), "BYE"));
+    GT_TRUE(read.keys[0]->getNode() == 21);
+    GT_TRUE(read.keys[1]->getNode() == 11);
 
     exit(0);
 }
@@ -28,12 +33,17 @@ void testDataframeDescriptions() {
     const char _schema[3] = {INT, STRING, '\0'};
     String* schema = new String(_schema);
 
-    Key kA("HELLO-A", 21);
-    Key kB("HELLO-B", 12);
+    Key** kA = new Key*[2];
+    kA[0] = new Key("HELLO", 21);
+    kA[1] = new Key("BYE", 11);
+
+    Key** kB = new Key*[2];
+    kB[0] = new Key("HOUSE", 0);
+    kB[1] = new Key("BRICK", 5);
 
     ColumnDescription** descriptions = new ColumnDescription*[2];
-    descriptions[0] = new ColumnDescription(kA, INT);
-    descriptions[1] = new ColumnDescription(kB, STRING);
+    descriptions[0] = new ColumnDescription(kA, 2, 2020, INT);
+    descriptions[1] = new ColumnDescription(kB, 2, 97, STRING);
 
     Serializer serializer;
     DataframeDescription(schema->clone(), 2, descriptions).serialize(serializer);
@@ -45,12 +55,18 @@ void testDataframeDescriptions() {
     GT_TRUE(read.schema->equals(schema));
 
     GT_TRUE(read.columns[0]->type == INT);
-    GT_TRUE(!strcmp(read.columns[0]->location->getName(), kA.getName()));
-    GT_TRUE(read.columns[0]->location->getNode() == kA.getNode());
+    GT_TRUE(read.columns[0]->chunks == 2);
+    GT_TRUE(!strcmp(read.columns[0]->keys[0]->getName(), "HELLO"));
+    GT_TRUE(!strcmp(read.columns[0]->keys[1]->getName(), "BYE"));
+    GT_TRUE(read.columns[0]->keys[0]->getNode() == 21);
+    GT_TRUE(read.columns[0]->keys[1]->getNode() == 11);
 
     GT_TRUE(read.columns[1]->type == STRING);
-    GT_TRUE(!strcmp(read.columns[1]->location->getName(), kB.getName()));
-    GT_TRUE(read.columns[1]->location->getNode() == kB.getNode());
+    GT_TRUE(read.columns[1]->chunks == 2);
+    GT_TRUE(!strcmp(read.columns[1]->keys[0]->getName(), "HOUSE"));
+    GT_TRUE(!strcmp(read.columns[1]->keys[1]->getName(), "BRICK"));
+    GT_TRUE(read.columns[1]->keys[0]->getNode() == 0);
+    GT_TRUE(read.columns[1]->keys[1]->getNode() == 5);
 
     delete schema;
 

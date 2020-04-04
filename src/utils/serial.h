@@ -4,6 +4,7 @@
 #include "instructor-provided/string.h"
 #include "instructor-provided/object.h"
 #include "datastructures/element_column.h"
+#include "key.h"
 
 /**
  * Class to serialize an object
@@ -209,6 +210,15 @@ class Serializer {
             write(data.sin_port);
             write(data.sin_addr.s_addr);
             _write(data.sin_zero, sizeof(char) * 8);
+        }
+
+        /**
+         * Public write method that serializes a Key object
+         * @param data an Key object
+         */
+        void write(Key& data) {
+            write((uint32_t)data.getNode());
+            write(data.getNameAsString());
         }
 };
 
@@ -443,5 +453,18 @@ class Deserializer {
             memcpy(content.sin_zero, _buffer + _position - (sizeof(char) * 8), sizeof(char) * 8);
 
             return content;
+        }
+
+        /**
+         * Reads an Key object
+         * @return the Key object
+         */
+        Key* read_key() {
+            uint32_t node = read_uint32();
+            String* name = read_string();
+            Key* key = new Key(name->c_str(), node);
+            delete name;
+
+            return key;
         }
 };

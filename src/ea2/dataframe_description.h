@@ -13,36 +13,54 @@ class ColumnDescription: public Object {
     public:
 
         /** The location of the data for the column */
-        Key* location = nullptr;
+        Key** keys = nullptr;
+
+        /** The number of chunks in the column */
+        uint64_t chunks = 0;
+
+        /** The total number of elements in the column */
+        uint64_t totalLength = 0;
 
         /** The type of the column */
         ColumnType type = (ColumnType)'\0';
 
         /** Default constructor */
-        ColumnDescription(const Key &location, ColumnType type) : location(new Key(location.getName(), location.getNode())), type(type) {}
+        ColumnDescription(Key **keys, uint64_t chunks, uint64_t totalLength, ColumnType type) : keys(keys),
+                                                                                                chunks(chunks),
+                                                                                                totalLength(totalLength),
+                                                                                                type(type) {}
 
         /** Constructor for deserialization */
         ColumnDescription() {}
 
         ~ColumnDescription() {
-            delete location;
+            for (size_t i = 0; i < chunks; i++) {
+                delete keys[i];
+            }
+
+            delete[] keys;
         }
 
         /** Writes this description out to a buffer */
         void serialize(Serializer &serializer) {
-            serializer.write(location->_name);
-            serializer.write((uint32_t)location->getNode());
+            serializer.write(chunks);
+            serializer.write(totalLength);
             serializer.write((uint8_t)type);
+            for (size_t i = 0; i < chunks; i++) {
+                serializer.write(*keys[i]);
+            }
         }
 
         /** Reads a description from a buffer */
         void deserialize(Deserializer &deserializer) {
-            String* name = deserializer.read_string();
-            size_t node = deserializer.read_uint32();
-            location = new Key(name->c_str(), node);
-            delete name;
-
+            chunks = deserializer.read_uint64();
+            totalLength = deserializer.read_uint64();
             type = (ColumnType)deserializer.read_uint8();
+
+            keys = new Key*[chunks];
+            for (size_t i = 0; i < chunks; i++) {
+                keys[i] = deserializer.read_key();
+            }
         }
 
 };
