@@ -141,15 +141,19 @@ class Client {
 
                 Socket* newSocket = _listeningSocket.acceptConnection(false);
                 if (newSocket) {
-                    MessageReader newReader(*newSocket);
+                    std::thread clientThread([&]() {
+                        MessageReader newReader(*newSocket);
 
-                    Message* firstMessage = newReader.readMessage();
-                    RemoteClient remoteClient(*newSocket);
-                    _handler->handleMessage(firstMessage, remoteClient);
+                        Message* firstMessage = newReader.readMessage();
+                        RemoteClient remoteClient(*newSocket);
+                        _handler->handleMessage(firstMessage, remoteClient);
 
-                    newSocket->closeSocket();
-                    delete firstMessage;
-                    delete newSocket;
+                        newSocket->closeSocket();
+                        delete firstMessage;
+                        delete newSocket;
+                    });
+
+                    clientThread.detach();
                 }
             }
         }

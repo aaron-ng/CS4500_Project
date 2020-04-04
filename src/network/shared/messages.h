@@ -261,10 +261,21 @@ class ClientInformation: public Codable {
 };
 
 /**
+ * The various different kinds of messages that are sent between KBStores
+ */
+enum KBMessageType: uint8_t {
+    ACK,
+    PUT,
+    GET,
+    GET_AND_WAIT,
+    RESPONSE_DATA
+};
+
+/**
  * A message that contains an arbitrary amount of data
  * Written by: pazol.l@husky.neu.edu and ng.h@husky.neu.edu
  */
-class Data: public Codable {
+class KBMessage: public Codable {
     public:
 
         /** Use a string since the serializer already knows how to handle that */
@@ -273,21 +284,31 @@ class Data: public Codable {
         /** The length in bytes of data */
         uint64_t _length;
 
+        /** The type of KBStore message that this is */
+        KBMessageType _kbMessageType;
+
+        /** true if this message owns the data it has */
+        bool _ownsData;
+
         /**
          * Default constructor
+         * @param type The type of message that this is
          * @param data The data for this message
          * @param length The length of the data in bytes
+         * @param ownsData true if this message owns the data it has
          */
-        Data(const char* data, size_t length) : _length(length) {
+        KBMessage(KBMessageType type, const char* data, size_t length, bool ownsData = true) : _length(length), _kbMessageType(type), _ownsData(ownsData) {
             _data = new char[length];
             memcpy(_data, data, sizeof(char) * length);
         }
 
         /** Constructor for deserialziation */
-        Data() {}
+        KBMessage() {}
 
-        ~Data() {
-            delete[] _data;
+        ~KBMessage() {
+            if (_ownsData) {
+                delete[] _data;
+            }
         }
 
         /**
@@ -296,6 +317,7 @@ class Data: public Codable {
          */
         virtual void serialize(Serializer& serializer) {
             MessageHeader(sizeof(uint64_t) + sizeof(char) * _length, DATA).serialize(serializer);
+            serializer.write((uint8_t)_kbMessageType);
             serializer.write(_length);
             serializer._write(_data, sizeof(char) * _length);
         }
@@ -309,8 +331,16 @@ class Data: public Codable {
             header.deserialize(deserializer);
             assert(header.messageType == DATA);
 
+            _kbMessageType = (KBMessageType)deserializer.read_uint8();
             _length = deserializer.read_uint64();
             _data = deserializer.read(_length);
+        }
+
+        /**
+         * Provides the type of KBStore message that this is
+         */
+        KBMessageType getKbMessageType() const {
+            return _kbMessageType;
         }
 
         /**

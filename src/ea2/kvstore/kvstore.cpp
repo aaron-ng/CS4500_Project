@@ -30,12 +30,12 @@ DataFrame* KVStore::get(Key& key) {
     Schema s(desc->schema->c_str());
     DataFrame* dataFrame = new DataFrame(s);
 
-//    for (size_t i = 0; i < desc->numColumns; i++) {
-//        Key* columnKey = desc->columns[i]->location;
-//        ByteArray* bytes = _stores[columnKey->getNode()]->_byteStore.get(*columnKey);
-//
-//        // TODO add column
-//    }
+    for (size_t i = 0; i < desc->numColumns; i++) {
+        Key* columnKey = desc->columns[i]->location;
+        ByteArray* bytes = _stores[columnKey->getNode()]->_byteStore.get(*columnKey);
+
+        // TODO add column
+    }
 
     return dataFrame;
 }

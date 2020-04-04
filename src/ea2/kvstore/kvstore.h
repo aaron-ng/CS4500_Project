@@ -79,15 +79,4 @@ public:
      */
     String* _keyFor(const Key& key, size_t column) const;
 
-    /**
-     * An object wrapper a std::atomic that says if a key is ready
-     * Created by ng.h@husky.neu.edu and pazol.l@husky.neu.edu
-     */
-    class Ready: public Object {
-        public:
-            std::atomic<bool> isReady;
-
-            /** Default constructor */
-            Ready() : isReady(false) {}
-    };
 };
