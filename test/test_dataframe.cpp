@@ -4,6 +4,7 @@
 #include "../src/utils/datastructures/element_column.h"
 #include "../src/utils/column_type.h"
 #include "../src/dataframe/dataframe.h"
+#include "../src/utils/datastructures/columns/chunked_column.h"
 
 
 /* Start element column tests                                      */
@@ -121,12 +122,12 @@ TEST(W1, testColumnNameIndexWorks) { ASSERT_EXIT_ZERO(testColumnNameIndexWorks) 
 const int intValues[] {-1231238, 84393389, 0, 123, -9696};
 
 void testIntTypeWorks() {
-    GT_TRUE(IntColumn().get_type() == INT);
+    GT_TRUE(FullIntColumn().get_type() == INT);
     exit(0);
 }
 
 void testIntVarArgsConstructorWorks() {
-    IntColumn column(INT_VALUES, intValues[0], intValues[1], intValues[2], intValues[3], intValues[4]);
+    FullIntColumn column(INT_VALUES, intValues[0], intValues[1], intValues[2], intValues[3], intValues[4]);
 
     GT_TRUE(column.size() == INT_VALUES);
     for (size_t i = 0; i < INT_VALUES; i++) {
@@ -137,7 +138,7 @@ void testIntVarArgsConstructorWorks() {
 }
 
 void testIntPushBackWorks() {
-    IntColumn column(INT_VALUES, intValues[0], intValues[1], intValues[2], intValues[3], intValues[4]);
+    FullIntColumn column(INT_VALUES, intValues[0], intValues[1], intValues[2], intValues[3], intValues[4]);
     for (size_t i = 0; i < INT_VALUES; i++) {
         column.push_back(intValues[i]);
     }
@@ -151,7 +152,7 @@ void testIntPushBackWorks() {
 }
 
 void testIntSetWorks() {
-    IntColumn column(INT_VALUES, intValues[0], intValues[1], intValues[2], intValues[3], intValues[4]);
+    FullIntColumn column(INT_VALUES, intValues[0], intValues[1], intValues[2], intValues[3], intValues[4]);
     for (size_t i = 0; i < INT_VALUES; i++) {
         column.set(i, intValues[INT_VALUES - i - 1]);
     }
@@ -164,27 +165,10 @@ void testIntSetWorks() {
     exit(0);
 }
 
-void testIntSerialization() {
-    Serializer serializer;
-    IntColumn(INT_VALUES, intValues[0], intValues[1], intValues[2], intValues[3], intValues[4]).serialize(serializer);
-
-    Deserializer deserializer(serializer.getSize(), serializer.getBuffer());
-    IntColumn read;
-    read.deserialize(deserializer);
-
-    GT_TRUE(read.size() == INT_VALUES);
-    for (size_t i = 0; i < INT_VALUES; i++) {
-        GT_TRUE(read.get(i) == intValues[i]);
-    }
-
-    exit(0);
-}
-
 TEST(W1, testIntTypeWorks) { ASSERT_EXIT_ZERO(testIntTypeWorks) }
 TEST(W1, testIntVarArgsConstructorWorks) { ASSERT_EXIT_ZERO(testIntVarArgsConstructorWorks) }
 TEST(W1, testIntPushBackWorks) { ASSERT_EXIT_ZERO(testIntPushBackWorks) }
 TEST(W1, testIntSetWorks) { ASSERT_EXIT_ZERO(testIntSetWorks) }
-TEST(W1, testIntSerialization) { ASSERT_EXIT_ZERO(testIntSerialization) }
 
 /* End IntColumn tests                                             */
 /*-----------------------------------------------------------------*/
@@ -196,12 +180,12 @@ TEST(W1, testIntSerialization) { ASSERT_EXIT_ZERO(testIntSerialization) }
 const double doubleValues[] {-1238.12323, 8439.3389, 0.0, 123.55555552, -9696.0010010};
 
 void testDoubleTypeWorks() {
-    GT_TRUE(DoubleColumn().get_type() == DOUBLE);
+    GT_TRUE(FullDoubleColumn().get_type() == DOUBLE);
     exit(0);
 }
 
 void testDoubleVarArgsConstructorWorks() {
-    DoubleColumn column(DOUBLE_VALUES, doubleValues[0], doubleValues[1], doubleValues[2], doubleValues[3], doubleValues[4]);
+    FullDoubleColumn column(DOUBLE_VALUES, doubleValues[0], doubleValues[1], doubleValues[2], doubleValues[3], doubleValues[4]);
 
     GT_TRUE(column.size() == DOUBLE_VALUES);
     for (size_t i = 0; i < DOUBLE_VALUES; i++) {
@@ -212,7 +196,7 @@ void testDoubleVarArgsConstructorWorks() {
 }
 
 void testDoublePushBackWorks() {
-    DoubleColumn column(DOUBLE_VALUES, doubleValues[0], doubleValues[1], doubleValues[2], doubleValues[3], doubleValues[4]);
+    FullDoubleColumn column(DOUBLE_VALUES, doubleValues[0], doubleValues[1], doubleValues[2], doubleValues[3], doubleValues[4]);
     for (size_t i = 0; i < DOUBLE_VALUES; i++) {
         column.push_back(doubleValues[i]);
     }
@@ -226,7 +210,7 @@ void testDoublePushBackWorks() {
 }
 
 void testDoubleSetWorks() {
-    DoubleColumn column(DOUBLE_VALUES, doubleValues[0], doubleValues[1], doubleValues[2], doubleValues[3], doubleValues[4]);
+    FullDoubleColumn column(DOUBLE_VALUES, doubleValues[0], doubleValues[1], doubleValues[2], doubleValues[3], doubleValues[4]);
     for (size_t i = 0; i < DOUBLE_VALUES; i++) {
         column.set(i, doubleValues[DOUBLE_VALUES - i - 1]);
     }
@@ -239,27 +223,10 @@ void testDoubleSetWorks() {
     exit(0);
 }
 
-void testDoubleSerialization() {
-    Serializer serializer;
-    DoubleColumn(DOUBLE_VALUES, doubleValues[0], doubleValues[1], doubleValues[2], doubleValues[3], doubleValues[4]).serialize(serializer);
-
-    Deserializer deserializer(serializer.getSize(), serializer.getBuffer());
-    DoubleColumn read;
-    read.deserialize(deserializer);
-
-    GT_TRUE(read.size() == DOUBLE_VALUES);
-    for (size_t i = 0; i < DOUBLE_VALUES; i++) {
-        GT_TRUE(read.get(i) == doubleValues[i]);
-    }
-
-    exit(0);
-}
-
 TEST(W1, testDoubleTypeWorks) { ASSERT_EXIT_ZERO(testDoubleTypeWorks) }
 TEST(W1, testDoubleVarArgsConstructorWorks) { ASSERT_EXIT_ZERO(testDoubleVarArgsConstructorWorks) }
 TEST(W1, testDoublePushBackWorks) { ASSERT_EXIT_ZERO(testDoublePushBackWorks) }
 TEST(W1, testDoubleSetWorks) { ASSERT_EXIT_ZERO(testDoubleSetWorks) }
-TEST(W1, testDoubleSerialization) { ASSERT_EXIT_ZERO(testDoubleSerialization) }
 
 /* End DoubleColumn tests                                           */
 /*-----------------------------------------------------------------*/
@@ -271,12 +238,12 @@ TEST(W1, testDoubleSerialization) { ASSERT_EXIT_ZERO(testDoubleSerialization) }
 const bool boolValues[] {true, true, false, true, false};
 
 void testBoolTypeWorks() {
-    GT_TRUE(BoolColumn().get_type() == BOOL);
+    GT_TRUE(FullBoolColumn().get_type() == BOOL);
     exit(0);
 }
 
 void testBoolVarArgsConstructorWorks() {
-    BoolColumn column(BOOL_VALUES, boolValues[0], boolValues[1], boolValues[2], boolValues[3], boolValues[4]);
+    FullBoolColumn column(BOOL_VALUES, boolValues[0], boolValues[1], boolValues[2], boolValues[3], boolValues[4]);
 
     GT_TRUE(column.size() == BOOL_VALUES);
     for (size_t i = 0; i < BOOL_VALUES; i++) {
@@ -287,7 +254,7 @@ void testBoolVarArgsConstructorWorks() {
 }
 
 void testBoolPushBackWorks() {
-    BoolColumn column(BOOL_VALUES, boolValues[0], boolValues[1], boolValues[2], boolValues[3], boolValues[4]);
+    FullBoolColumn column(BOOL_VALUES, boolValues[0], boolValues[1], boolValues[2], boolValues[3], boolValues[4]);
     for (size_t i = 0; i < BOOL_VALUES; i++) {
         column.push_back(boolValues[i]);
     }
@@ -301,7 +268,7 @@ void testBoolPushBackWorks() {
 }
 
 void testBoolSetWorks() {
-    BoolColumn column(BOOL_VALUES, boolValues[0], boolValues[1], boolValues[2], boolValues[3], boolValues[4]);
+    FullBoolColumn column(BOOL_VALUES, boolValues[0], boolValues[1], boolValues[2], boolValues[3], boolValues[4]);
     for (size_t i = 0; i < BOOL_VALUES; i++) {
         column.set(i, boolValues[BOOL_VALUES - i - 1]);
     }
@@ -314,27 +281,10 @@ void testBoolSetWorks() {
     exit(0);
 }
 
-void testBoolSerialization() {
-    Serializer serializer;
-    BoolColumn(BOOL_VALUES, boolValues[0], boolValues[1], boolValues[2], boolValues[3], boolValues[4]).serialize(serializer);
-
-    Deserializer deserializer(serializer.getSize(), serializer.getBuffer());
-    BoolColumn read;
-    read.deserialize(deserializer);
-
-    GT_TRUE(read.size() == BOOL_VALUES);
-    for (size_t i = 0; i < BOOL_VALUES; i++) {
-        GT_TRUE(read.get(i) == boolValues[i]);
-    }
-
-    exit(0);
-}
-
 TEST(W1, testBoolTypeWorks) { ASSERT_EXIT_ZERO(testBoolTypeWorks) }
 TEST(W1, testBoolVarArgsConstructorWorks) { ASSERT_EXIT_ZERO(testBoolVarArgsConstructorWorks) }
 TEST(W1, testBoolPushBackWorks) { ASSERT_EXIT_ZERO(testBoolPushBackWorks) }
 TEST(W1, testBoolSetWorks) { ASSERT_EXIT_ZERO(testBoolSetWorks) }
-TEST(W1, testBoolSerialization) { ASSERT_EXIT_ZERO(testBoolSerialization) }
 
 /* End BoolColumn tests                                            */
 /*-----------------------------------------------------------------*/
@@ -346,12 +296,12 @@ TEST(W1, testBoolSerialization) { ASSERT_EXIT_ZERO(testBoolSerialization) }
 String* stringValues[STRING_VALUES] = {new String("hello"), new String("bye"), new String("wat"), new String("nooo"), new String("yes")};
 
 void testStringTypeWorks() {
-    GT_TRUE(StringColumn().get_type() == STRING);
+    GT_TRUE(FullStringColumn().get_type() == STRING);
     exit(0);
 }
 
 void testStringVarArgsConstructorWorks() {
-    StringColumn column(STRING_VALUES, stringValues[0], stringValues[1], stringValues[2], stringValues[3], stringValues[4]);
+    FullStringColumn column(STRING_VALUES, stringValues[0], stringValues[1], stringValues[2], stringValues[3], stringValues[4]);
 
     GT_TRUE(column.size() == STRING_VALUES);
     for (size_t i = 0; i < STRING_VALUES; i++) {
@@ -362,7 +312,7 @@ void testStringVarArgsConstructorWorks() {
 }
 
 void testStringPushBackWorks() {
-    StringColumn column(STRING_VALUES, stringValues[0], stringValues[1], stringValues[2], stringValues[3], stringValues[4]);
+    FullStringColumn column(STRING_VALUES, stringValues[0], stringValues[1], stringValues[2], stringValues[3], stringValues[4]);
     for (size_t i = 0; i < STRING_VALUES; i++) {
         column.push_back(stringValues[i]);
     }
@@ -376,7 +326,7 @@ void testStringPushBackWorks() {
 }
 
 void testStringSetWorks() {
-    StringColumn column(STRING_VALUES, stringValues[0], stringValues[1], stringValues[2], stringValues[3], stringValues[4]);
+    FullStringColumn column(STRING_VALUES, stringValues[0], stringValues[1], stringValues[2], stringValues[3], stringValues[4]);
     for (size_t i = 0; i < STRING_VALUES; i++) {
         column.set(i, stringValues[STRING_VALUES - i - 1]);
     }
@@ -389,29 +339,10 @@ void testStringSetWorks() {
     exit(0);
 }
 
-void testStringSerialization() {
-    Serializer serializer;
-    StringColumn column(STRING_VALUES, stringValues[0], stringValues[1], stringValues[2], stringValues[3], stringValues[4]);
-    column.serialize(serializer);
-
-    Deserializer deserializer(serializer.getSize(), serializer.getBuffer());
-    StringColumn read;
-    read.deserialize(deserializer);
-
-    GT_TRUE(read.size() == STRING_VALUES);
-    for (size_t i = 0; i < STRING_VALUES; i++) {
-        GT_TRUE(read.get(i)->equals(stringValues[i]));
-    }
-
-    exit(0);
-}
-
 TEST(W1, testStringTypeWorks) { ASSERT_EXIT_ZERO(testStringTypeWorks) }
 TEST(W1, testStringVarArgsConstructorWorks) { ASSERT_EXIT_ZERO(testStringVarArgsConstructorWorks) }
 TEST(W1, testStringPushBackWorks) { ASSERT_EXIT_ZERO(testStringPushBackWorks) }
 TEST(W1, testStringSetWorks) { ASSERT_EXIT_ZERO(testStringSetWorks) }
-TEST(W1, testStringSerialization) { ASSERT_EXIT_ZERO(testStringSerialization) }
 
 /* End StringColumn tests                                          */
 /*-----------------------------------------------------------------*/
-

@@ -3,6 +3,7 @@
 #include "kvstore.h"
 #include "../../dataframe/dataframe.h"
 #include "../dataframe_description.h"
+#include "../../utils/datastructures/columns/chunked_column.h"
 
 KVStore::~KVStore() {
     std::vector<Entry*>& entries = _map.entrySet();
@@ -33,8 +34,7 @@ DataFrame* KVStore::get(Key& key) {
         Key* columnKey = desc->columns[i]->location;
         ByteArray* bytes = _stores[columnKey->getNode()]->_byteStore.get(*columnKey);
 
-        Deserializer deserializer( bytes->length, bytes->contents);
-        dataFrame->getColumn(i)->deserialize(deserializer);
+        // TODO add column
     }
 
     return dataFrame;
@@ -94,7 +94,7 @@ void KVStore::put(DataFrame* dataframe, Key& key) {
         delete name;
 
         Serializer serializer;
-        dataframe->getColumn(i)->serialize(serializer);
+        // TODO FIX
         _stores[node]->_byteStore.put(serializer.getUnownedBuffer(), serializer.getSize(), newKey);
     }
 
