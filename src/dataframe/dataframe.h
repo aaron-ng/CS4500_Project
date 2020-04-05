@@ -11,8 +11,8 @@
 #include "../utils/instructor-provided/string.h"
 #include "../ea2/kvstore/kvstore.h"
 #include "../network/shared/messages.h"
-#include "../utils/datastructures/columns/column.h"
-#include "../utils/datastructures/columns/concrete_columns.h"
+#include "columns/concrete_columns.h"
+#include "columns/chunked_column.h"
 
 /**
  * Creates a new column of the given type. If the type is invalid, nullptr is returned
@@ -25,6 +25,24 @@ inline Column* allocateColumnOfType(char type) {
         case BOOL: return new FullBoolColumn();
         case DOUBLE: return new FullDoubleColumn();
         case STRING: return new FullStringColumn();
+        default: return nullptr;
+    }
+}
+
+/**
+ * Creates a new column that will load chunks of data from different keys of the given type
+ * @param type The type of column to create
+ * @param keys The list of keys to use for chunks
+ * @param chunkCount The number of chunks
+ * @param kbstore The kbstore to load the chunks from
+ * @param totalSize The number of elements inside of the entire column
+ */
+inline Column* allocateChunkedColumnOfType(char type, Key** keys, size_t chunkCount, KBStore &kbstore, size_t totalSize) {
+    switch (type) {
+        case INT: return new ChunkedIntColumn(keys, chunkCount, kbstore, totalSize);
+        case BOOL: return new ChunkedBoolColumn(keys, chunkCount, kbstore, totalSize);
+        case DOUBLE: return new ChunkedDoubleColumn(keys, chunkCount, kbstore, totalSize);
+        case STRING: return new ChunkedStringColumn(keys, chunkCount, kbstore, totalSize);
         default: return nullptr;
     }
 }
@@ -243,7 +261,7 @@ public:
         if (!name || _schema.col_idx(name->c_str()) == -1) {
             if (_schema.width() == 0 || col->size() == nrows()) {
                 _schema.add_column(col->get_type(), name);
-                _columns.grow()->c = dynamic_cast<Column*>(col->clone());
+                _columns.grow()->c = dynamic_cast<Column*>(col);
             }
         }
     }

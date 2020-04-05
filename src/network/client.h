@@ -63,6 +63,9 @@ class Client {
         /** The port that the client is listening on */
         uint16_t _port;
 
+        /** The node ID of the client */
+        uint32_t _node = -1;
+
         /** The handler for messages. Owns the handler */
         MessageHandler* _handler;
 
@@ -109,6 +112,16 @@ class Client {
         void _handshake(Socket& s) {
             Handshake handshake(_ip, _port);
             s.sendData(handshake);
+
+            MessageReader reader(s);
+            Message* m = reader.readMessage();
+            Deserializer deserializer = m->deserializer();
+
+            HandshakeResponse response;
+            response.deserialize(deserializer);
+
+            _node = response.clientID;
+            delete m;
         }
 
         /**
@@ -141,7 +154,7 @@ class Client {
 
                 Socket* newSocket = _listeningSocket.acceptConnection(false);
                 if (newSocket) {
-                    std::thread clientThread([&]() {
+                    std::thread clientThread([&, newSocket]() {
                         MessageReader newReader(*newSocket);
 
                         Message* firstMessage = newReader.readMessage();
@@ -163,9 +176,11 @@ class Client {
          * @param clientId The index in clientInformation() to send the message to
          * @param data The data to send to the client
          */
-        void send(size_t clientId, Codable& data) {
-            RemoteClient client(_clientInfo.information[clientId]);
-            client.send(data);
+        RemoteClient* send(size_t clientId, Codable& data) {
+            RemoteClient* client = new RemoteClient(_clientInfo.information[clientId]);
+            client->send(data);
+
+            return client;
         }
 
         /**
@@ -179,6 +194,9 @@ class Client {
         /**
          * Provides the information of all of the clients connected to the central server, including this one
          */
-        const ClientInformation& clientInformation() { return _clientInfo; }
+        const ClientInformation& clientInformation() const { return _clientInfo; }
+
+        /** Gets the node ID of the client. -1 if not connected to a server */
+        uint32_t this_node() const { return _node; }
 
 };

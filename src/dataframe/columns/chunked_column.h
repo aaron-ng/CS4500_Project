@@ -2,9 +2,9 @@
 
 #pragma once
 
-#include "../../../ea2/kbstore.h"
-#include "../../key.h"
-#include "../element_column.h"
+#include "../../ea2/kbstore.h"
+#include "../../utils/key.h"
+#include "../../utils/datastructures/element_column.h"
 
 /**
  * A column that will retrieve chunks of data from a KB store
@@ -60,7 +60,7 @@ class ChunkedColumn {
         Element _get(size_t idx) {
             size_t chunk = idx / Column::CHUNK_SIZE;
             if (!_chunks[chunk]) {
-                ByteArray* data = _kbstore.get(*_keys[chunk]);
+                ByteArray* data = _kbstore.waitAndGet(*_keys[chunk]);
                 Deserializer deserializer(data->length, data->contents);
 
                 _chunks[chunk] = deserializeChunk(deserializer);

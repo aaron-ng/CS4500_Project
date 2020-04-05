@@ -28,7 +28,7 @@ class Serializer {
          * @param contents the data being serialized
          * @param size the byte size of the data
          */
-        void _write(void* contents, size_t size) {
+        void _write(const void* contents, size_t size) {
             if (_writtenBytes + size > _capacity) {
                 _expand(size);
             }
@@ -261,7 +261,6 @@ class Deserializer {
             char* data = new char[length];
 
             memcpy(data, _buffer + _position, sizeof(char) * length);
-
             _deserialize(sizeof(char) * length);
 
             return data;
@@ -467,4 +466,10 @@ class Deserializer {
 
             return key;
         }
+
+        /** Provides the number of bytes that are left to be deserialized */
+        size_t remainingBytes() const { return _length - _position; }
+
+        /** Returns the head of the deserializer. This is where data is deserialized from next */
+        const char* head() { return _buffer + _position; }
 };

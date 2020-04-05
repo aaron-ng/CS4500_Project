@@ -1,10 +1,10 @@
 #pragma once
 
 #include "column.h"
-#include "../../../utils/column_type.h"
-#include "../../../utils/instructor-provided/object.h"
-#include "../../../utils/datastructures/element_column.h"
-#include "../../../utils/serial.h"
+#include "../../utils/column_type.h"
+#include "../../utils/instructor-provided/object.h"
+#include "../../utils/datastructures/element_column.h"
+#include "../../utils/serial.h"
 
 /**
  * Returns the number of elements inside the given chunk

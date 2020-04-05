@@ -18,23 +18,17 @@
 class KVStore {
 public:
 
-    /** The mapping of keys to descriptions */
-    Map _map;
-
-    /** Statuses of keys that are used for waitAndGet. This prevents deadlocks */
-    Map _statuses;
-
-    /** Mutex for _statuses */
-    std::mutex _statusMutex;
-
     /** The store for raw bytes under keys */
     KBStore _byteStore;
 
-    /** References to all of the KV stores. TODO REMOVE */
-    std::vector<KVStore*> _stores;
-
-
-    ~KVStore();
+    /**
+     * Default constructor
+     * @param ip The IP that the client is reachable at
+     * @param handler The handler for messages. Owns the handler
+     * @param serverIP The IP of the rendezvous server
+     * @param serverPort The port of the rendezvous server
+     */
+    KVStore(in_addr_t ip, uint16_t port, in_addr_t serverIP, uint16_t serverPort);
 
     /**
      * Retrieves the dataframe with the given key from the key value store. If the
@@ -75,8 +69,17 @@ public:
      * Provides the key for the column in the byte stores
      * @param key The key that the dataframe is stored under
      * @param column The column index
+     * @param chunk The chunk index
+     * @param node The node for the key
      * @return The key for the column in a dataframe stored under the given key
      */
-    String* _keyFor(const Key& key, size_t column) const;
+    Key* _keyFor(const Key& key, size_t column, size_t chunk, size_t node) const;
+
+    /**
+     * Creates a new dataframe using the dataframe description
+     * @param desc The description of the dataframe to use to build the new one
+     * @return A new dataframe
+     */
+    DataFrame* _dataframeFrom(ByteArray* desc);
 
 };

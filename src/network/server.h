@@ -74,6 +74,9 @@ class Server {
                     handshake.deserialize(deserializer);
                     delete message;
 
+                    HandshakeResponse response(_clients.size());
+                    newConnection->sendData(response);
+
                     std::cout << "Client is listening" << std::endl;
 
                     // Notify all of the other clients a new client has connected

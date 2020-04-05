@@ -11,6 +11,7 @@
  */
 enum MessageType: uint8_t {
     HANDSHAKE,
+    HANDHSAKE_RESPONSE,
     CLIENT_INFO,
     DATA,
     TEARDOWN,
@@ -177,6 +178,47 @@ class Handshake: public Codable {
 };
 
 /**
+ * The packet sent from the server to the client during the initial handshake
+ * Written by: pazol.l@husky.neu.edu and ng.h@husky.neu.edu
+ */
+class HandshakeResponse: public Codable {
+    public:
+
+        /** The node id of the client */
+        uint32_t clientID;
+
+        /** Constructor for deserialization */
+        HandshakeResponse() {}
+
+        /**
+         * Default constructor
+         * @param clientID The node id of the client
+         */
+        HandshakeResponse(uint32_t clientID) : clientID(clientID) {}
+
+        /**
+         * Serializes the handshake to a buffer
+         * @param serializer The buffer to write to
+         */
+        virtual void serialize(Serializer& serializer) {
+            MessageHeader(sizeof(clientID), HANDHSAKE_RESPONSE).serialize(serializer);
+            serializer.write(clientID);
+        }
+
+        /**
+         * Reads the handshake from a buffer
+         * @param deserializer The buffer to read from
+         */
+        virtual void deserialize(Deserializer& deserializer) {
+            MessageHeader header;
+            header.deserialize(deserializer);
+            assert(header.messageType == HANDHSAKE_RESPONSE);
+
+            clientID = deserializer.read_uint32();
+        }
+};
+
+/**
  * The packet that is sent from the server to the client to tell the client that it should teardown
  * Written by: pazol.l@husky.neu.edu and ng.h@husky.neu.edu
  */
@@ -287,17 +329,13 @@ class KBMessage: public Codable {
         /** The type of KBStore message that this is */
         KBMessageType _kbMessageType;
 
-        /** true if this message owns the data it has */
-        bool _ownsData;
-
         /**
          * Default constructor
          * @param type The type of message that this is
          * @param data The data for this message
          * @param length The length of the data in bytes
-         * @param ownsData true if this message owns the data it has
          */
-        KBMessage(KBMessageType type, const char* data, size_t length, bool ownsData = true) : _length(length), _kbMessageType(type), _ownsData(ownsData) {
+        KBMessage(KBMessageType type, const char* data, size_t length) : _length(length), _kbMessageType(type) {
             _data = new char[length];
             memcpy(_data, data, sizeof(char) * length);
         }
@@ -306,9 +344,7 @@ class KBMessage: public Codable {
         KBMessage() {}
 
         ~KBMessage() {
-            if (_ownsData) {
-                delete[] _data;
-            }
+            delete[] _data;
         }
 
         /**
@@ -316,7 +352,7 @@ class KBMessage: public Codable {
          * @param serializer buffer to write to
          */
         virtual void serialize(Serializer& serializer) {
-            MessageHeader(sizeof(uint64_t) + sizeof(char) * _length, DATA).serialize(serializer);
+            MessageHeader(sizeof(_length) + sizeof(char) * _length + sizeof(uint8_t), DATA).serialize(serializer);
             serializer.write((uint8_t)_kbMessageType);
             serializer.write(_length);
             serializer._write(_data, sizeof(char) * _length);
@@ -333,7 +369,7 @@ class KBMessage: public Codable {
 
             _kbMessageType = (KBMessageType)deserializer.read_uint8();
             _length = deserializer.read_uint64();
-            _data = deserializer.read(_length);
+            _data = deserializer.read(sizeof(char) * _length);
         }
 
         /**
