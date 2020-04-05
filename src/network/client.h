@@ -88,6 +88,9 @@ class Client {
         }
 
         ~Client() {
+            if (_serverSocket) { _serverSocket->closeSocket(); }
+            _listeningSocket.closeSocket();
+
             delete _serverSocket;
             delete _handler;
         }
@@ -162,7 +165,7 @@ class Client {
                         RemoteClient remoteClient(*newSocket);
                         _handler->handleMessage(firstMessage, remoteClient);
 
-                        newSocket->closeSocket();
+                        newSocket->closeWithHow(0);
                         delete firstMessage;
                         delete newSocket;
                     });

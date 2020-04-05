@@ -25,6 +25,7 @@ class ServerClientInfo {
         ServerClientInfo(const ClientIdentification &identification, Socket *socket) : identification(identification), socket(socket) {};
 
         ~ServerClientInfo() {
+            socket->closeSocket();
             delete socket;
         }
 
@@ -57,6 +58,8 @@ class Server {
             for (size_t i = 0; i < _clients.size(); i++) {
                 delete _clients.get(i)->cI;
             }
+
+            _s.closeSocket();
         }
 
         /** Starts listening to incoming connections and serving the list of connected clients to any incoming clients */

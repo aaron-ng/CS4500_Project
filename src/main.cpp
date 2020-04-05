@@ -4,14 +4,12 @@
 #include "demo.h"
 #include "network/server.h"
 
-Server server(inet_addr("127.0.0.1"), SERVER_PORT);
-
-void runServer() {
-    server.run();
-}
-
 int main(int argc, char** argv) {
-    std::thread serverThread(&runServer);
+    Server server(inet_addr("127.0.0.1"), SERVER_PORT);
+    std::thread serverThread([&] {
+        server.run();
+    });
+
     sleep(1);
 
     std::vector<KVStore*> stores = {
@@ -25,7 +23,7 @@ int main(int argc, char** argv) {
     std::vector<std::thread> threads;
 
     for (int i = 0; i < stores.size(); i++) {
-        threads.push_back(std::thread([i, &stores]() {
+        threads.emplace_back(std::thread([i, &stores]() {
             Demo demo(i, *stores[i]);
             demo._run();
         }));
@@ -44,6 +42,3 @@ int main(int argc, char** argv) {
 
     return 0;
 }
-
-
-

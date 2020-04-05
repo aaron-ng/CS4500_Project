@@ -136,46 +136,31 @@ class Socket {
          * @return The new socket that was accepted
          */
         Socket* acceptConnection(bool blocking = true) {
-
-            // Make the socket not blocking if it was specified
-            int flags;
-            if ((flags = fcntl(_socketFD, F_GETFL)) < 0) {
-                std::cout << "Failed to get socket flags" << std::endl;
-                exit(7);
-            }
-            if (!blocking) { if (fcntl(_socketFD, F_SETFL, flags | O_NONBLOCK) < 0) {
-                std::cout << "Failed to set socket flags" << std::endl;
-                exit(8); }
-            }
-
             if (listen(_socketFD, MAX_NUMBER_OF_CLIENTS) < 0) { exit(4); }
+
+            if (!blocking) {
+                fd_set readfds;
+                timeval tv;
+                tv.tv_usec = 50;
+                tv.tv_sec = 0;
+
+                FD_ZERO(&readfds);
+                FD_SET(_socketFD, &readfds);
+
+                int selectResult = select(_socketFD + 1, &readfds, NULL, NULL, &tv);
+                if (selectResult < 0) {
+                    std::cout << "Select error" << std::endl;
+                    exit(6);
+                } else if (!selectResult) { return nullptr; }
+            }
 
             int newSocketFD;
             socklen_t addressLen = sizeof(_address);
 
             int acceptStatus = newSocketFD = accept(_socketFD, (sockaddr*)&_address, &addressLen);
             if (acceptStatus < 0) {
-                if (errno != EWOULDBLOCK) {
-                    std::cout << "Error accepting incoming connection" << std::endl;
-                    exit(5);
-                }
-                return nullptr;
-            }
-
-            // Make both new and old socket block
-            if (fcntl(_socketFD, F_SETFL, flags & (~O_NONBLOCK)) < 0) {
-                std::cout << "Failed to set socket flags" << std::endl;
-                exit(8);
-            }
-
-            if ((flags = fcntl(newSocketFD, F_GETFL)) < 0) {
-                std::cout << "Failed to get socket flags" << std::endl;
-                exit(7);
-            }
-
-            if (fcntl(newSocketFD, F_SETFL, flags & (~O_NONBLOCK)) < 0) {
-                std::cout << "Failed to set socket flags" << std::endl;
-                exit(8);
+                std::cout << "Error accepting incoming connection" << std::endl;
+                exit(5);
             }
 
             return new Socket(newSocketFD);
@@ -196,7 +181,10 @@ class Socket {
         void sendData(Codable& data) {
             Serializer serializer;
             data.serialize(serializer);
-            write(_socketFD, serializer.getBuffer(), serializer.getSize());
+            if (send(_socketFD, serializer.getBuffer(), serializer.getSize(), 0) != serializer.getSize()) {
+                std::cout << "Write error!" << std::endl;
+                exit(10);
+            }
         }
 
         /**
@@ -205,7 +193,10 @@ class Socket {
          * @param length The amount of data to read
          */
         void readData(void* data, size_t length) {
-            read(_socketFD, data, length);
+            if (recv(_socketFD, data, length, 0) != length) {
+                std::cout << "Read error!" << std::endl;
+                exit(9);
+            }
         }
 
         /**
@@ -214,6 +205,17 @@ class Socket {
         void closeSocket() {
             if (!_closed) {
                 close(_socketFD);
+                _closed = true;
+            }
+        }
+
+        /**
+         * Closes the socket, but allows customization of the close behavior. This is equivalent to shutdown()
+         * @param how The description of how the socket should be closed, same as in shutdown().
+         */
+        void closeWithHow(int how) {
+            if (!_closed) {
+                shutdown(_socketFD, how);
                 _closed = true;
             }
         }

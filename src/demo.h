@@ -8,7 +8,7 @@ Key m("main",0);
 Key verify("verif",0);
 Key check("ck",0);
 
-inline const size_t SZ = 100;
+inline const size_t SZ = 100 * 1000;
 
 /**
  * Demo class that is provided by the instructors to test the EA2 system
