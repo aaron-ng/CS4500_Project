@@ -4,8 +4,9 @@
 #include "demo.h"
 #include "network/server.h"
 
+Server server(inet_addr("127.0.0.1"), SERVER_PORT);
+
 void runServer() {
-    Server server(inet_addr("127.0.0.1"), SERVER_PORT);
     server.run();
 }
 
@@ -37,6 +38,9 @@ int main(int argc, char** argv) {
     for (int i = 0; i < 3; i++) {
         delete stores[i];
     }
+
+    server.close();
+    serverThread.join();
 
     return 0;
 }

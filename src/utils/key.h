@@ -39,7 +39,7 @@ class Key: public Object {
         }
 
         /** Compute the hash code (subclass responsibility) */
-        virtual size_t hash_me() { return _name->hash() + _node; };
+        virtual size_t hash_me() { return _name->hash() + _node * 23891; };
 
         /** Subclasses should redefine */
         virtual bool equals(Object* other) {

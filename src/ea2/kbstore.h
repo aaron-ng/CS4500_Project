@@ -28,7 +28,9 @@ class ByteArray: public Object {
         ByteArray(const char *contents, size_t length, bool ownsData = true) : contents(contents), length(length), _ownsData(ownsData) {}
 
         virtual ~ByteArray() {
-            delete[] contents;
+            if (_ownsData) {
+                delete[] contents;
+            }
         }
 
 };
@@ -156,7 +158,9 @@ class KBStore {
 
                 _statusMutex.lock();
 
-                _map.put(key.clone(), new ByteArray(contents, length));
+                char* newBuffer = new char[length];
+                memcpy(newBuffer, contents, sizeof(char) * length);
+                _map.put(key.clone(), new ByteArray(newBuffer, length));
 
                 Ready* ready = dynamic_cast<Ready*>(_statuses.get(&key));
                 if (ready) { ready->isReady = true; }
