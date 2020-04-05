@@ -11,9 +11,6 @@
  class Application: public Sys {
     public:
 
-         // TODO REMOVE
-         size_t _TEMP;
-
         /** The distributed key store that this application is connected to */
         KVStore& kv;
 
@@ -24,13 +21,13 @@
          * but the example code supplies this param
          * @param kv The KV store to use for this application
          */
-        Application(size_t idx, KVStore& kv): kv(kv) { _TEMP = idx; }
+        Application(size_t idx, KVStore& kv): kv(kv) {  }
 
         /**
          * Provides the node identifier of the running application. This is determined
          * by the rendezvous server
          */
-        size_t this_node() const { return _TEMP; /* return kv.this_node(); */ }
+        size_t this_node() const {  return kv.this_node(); }
 
         /** The function that is called after the application setup is complete */
         virtual void _run() = 0;

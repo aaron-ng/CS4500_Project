@@ -1,5 +1,4 @@
 #include <gtest/gtest.h>
-#include <iostream>
 #include <thread>
 
 #include "utils.h"
@@ -70,12 +69,13 @@ void testClientInformationMessage() {
 void testDataMessage() {
     const char* hello = "Hello there new guy";
     Serializer serializer;
-    Data(hello, strlen(hello) + 1).serialize(serializer);
+    KBMessage(RESPONSE_DATA, hello, strlen(hello) + 1).serialize(serializer);
 
     Deserializer deserializer(serializer.getSize(), serializer.getBuffer());
-    Data read;
+    KBMessage read;
     read.deserialize(deserializer);
 
+    GT_TRUE(read.getKbMessageType() == RESPONSE_DATA);
     GT_TRUE(read.length() == strlen(hello) + 1);
     GT_TRUE(!strcmp(hello, read.getData()));
 

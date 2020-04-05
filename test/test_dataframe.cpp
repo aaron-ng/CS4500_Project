@@ -4,7 +4,7 @@
 #include "../src/utils/datastructures/element_column.h"
 #include "../src/utils/column_type.h"
 #include "../src/dataframe/dataframe.h"
-#include "../src/utils/datastructures/columns/chunked_column.h"
+#include "../src/dataframe/columns/chunked_column.h"
 
 
 /* Start element column tests                                      */

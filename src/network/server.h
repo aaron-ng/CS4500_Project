@@ -53,6 +53,12 @@ class Server {
          */
         Server(in_addr_t serverIP, uint16_t serverPort) : _s(serverIP, serverPort) {}
 
+        virtual ~Server() {
+            for (size_t i = 0; i < _clients.size(); i++) {
+                delete _clients.get(i)->cI;
+            }
+        }
+
         /** Starts listening to incoming connections and serving the list of connected clients to any incoming clients */
         void run() {
             if (!_tornDown) {

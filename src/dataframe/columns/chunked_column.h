@@ -40,9 +40,11 @@ class ChunkedColumn {
         virtual ~ChunkedColumn() {
             for (size_t i = 0; i < _chunkCount; i++) {
                 delete[] _chunks[i];
+                delete _keys[i];
             }
 
             delete[] _chunks;
+            delete[] _keys;
         }
 
         /**
@@ -222,7 +224,7 @@ class ChunkedDoubleColumn: ChunkedRawElementColumn, public DoubleColumn {
          * Returns the element at the given index
          * @param idx The index of the element to return
          */
-        virtual double get(size_t idx) { return _get(idx).b; }
+        virtual double get(size_t idx) { return _get(idx).f; }
 
         /**
          * Does nothing since all of the chunks are stored on thet network potentially

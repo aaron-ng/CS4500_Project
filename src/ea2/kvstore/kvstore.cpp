@@ -51,6 +51,8 @@ void KVStore::put(DataFrame* dataframe, Key& key) {
     description->serialize(serializer);
 
     _byteStore.put(serializer.getBuffer(), serializer.getSize(), key);
+
+    delete description;
 }
 
 /**

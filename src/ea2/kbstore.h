@@ -270,7 +270,6 @@ class KBStore {
                         default:
                             break;
                     }
-
                 }
 
                 /**
@@ -331,6 +330,7 @@ class KBStore {
                     } else {
                         KBMessage reply(RESPONSE_DATA, bytes->contents, bytes->length);
                         connectedClient.send(reply);
+                        delete bytes;
                     }
                 }
 

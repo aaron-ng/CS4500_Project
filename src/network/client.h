@@ -89,6 +89,7 @@ class Client {
 
         ~Client() {
             delete _serverSocket;
+            delete _handler;
         }
 
         /**

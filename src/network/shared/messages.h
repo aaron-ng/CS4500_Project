@@ -260,6 +260,10 @@ class ClientInformation: public Codable {
         /** Constructor for deserialization */
         ClientInformation() {}
 
+        virtual ~ClientInformation() {
+            delete[] information;
+        }
+
         /**
          * Default constructor
          * @param numClients The number of clients that there is information for
@@ -287,6 +291,8 @@ class ClientInformation: public Codable {
          * @param deserializer The buffer to read from
          */
         virtual void deserialize(Deserializer& deserializer) {
+            if (information) { delete[] information; }
+
             MessageHeader header;
             header.deserialize(deserializer);
             assert(header.messageType == CLIENT_INFO);
