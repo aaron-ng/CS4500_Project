@@ -72,6 +72,10 @@ class ChunkedColumn {
             return _chunks[chunk][idx % Column::CHUNK_SIZE];
         }
 
+        bool isKeyLocal(Key* key) {
+            return key->getNode() == _kbstore.this_node();
+        }
+
 };
 
 /**
@@ -112,7 +116,7 @@ class ChunkedRawElementColumn: public ChunkedColumn {
  * An IntColumn that will load chunks of data from a kbstore
  * Written by: pazol.l@husky.neu.edu and ng.h@husky.neu.edu
  */
-class ChunkedIntColumn: ChunkedRawElementColumn, public IntColumn {
+class ChunkedIntColumn: public ChunkedRawElementColumn, public IntColumn {
 
     public:
 
@@ -157,7 +161,7 @@ class ChunkedIntColumn: ChunkedRawElementColumn, public IntColumn {
  * An BoolColumn that will load chunks of data from a kbstore
  * Written by: pazol.l@husky.neu.edu and ng.h@husky.neu.edu
  */
-class ChunkedBoolColumn: ChunkedRawElementColumn, public BoolColumn {
+class ChunkedBoolColumn: public ChunkedRawElementColumn, public BoolColumn {
 
     public:
 
@@ -202,7 +206,7 @@ class ChunkedBoolColumn: ChunkedRawElementColumn, public BoolColumn {
  * An DoubleColumn that will load chunks of data from a kbstore
  * Written by: pazol.l@husky.neu.edu and ng.h@husky.neu.edu
  */
-class ChunkedDoubleColumn: ChunkedRawElementColumn, public DoubleColumn {
+class ChunkedDoubleColumn: public ChunkedRawElementColumn, public DoubleColumn {
 
     public:
 
@@ -243,7 +247,7 @@ class ChunkedDoubleColumn: ChunkedRawElementColumn, public DoubleColumn {
 
 };
 
-class ChunkedStringColumn: ChunkedColumn, public StringColumn {
+class ChunkedStringColumn: public ChunkedColumn, public StringColumn {
     public:
 
         /** The total number of elements inside of the column */
@@ -263,7 +267,7 @@ class ChunkedStringColumn: ChunkedColumn, public StringColumn {
         virtual ~ChunkedStringColumn() {
             for (size_t i = 0; i < _chunkCount; i++) {
                 if (_chunks[i]) {
-                    for (size_t idx = 0; idx < CHUNK_SIZE && i * CHUNK_SIZE + idx < _totalSize; i++) {
+                    for (size_t idx = 0; idx < CHUNK_SIZE && i * CHUNK_SIZE + idx < _totalSize; idx++) {
                         delete _chunks[i][idx].s;
                     }
                 }

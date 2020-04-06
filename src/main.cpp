@@ -2,6 +2,7 @@
 
 #include <thread>
 #include "demo.h"
+#include "word_count.h"
 #include "network/server.h"
 
 int main(int argc, char** argv) {
@@ -24,8 +25,8 @@ int main(int argc, char** argv) {
 
     for (int i = 0; i < stores.size(); i++) {
         threads.emplace_back(std::thread([i, &stores]() {
-            Demo demo(i, *stores[i]);
-            demo._run();
+            WordCount wordCount(i, *stores[i]);
+            wordCount._run();
         }));
     }
 
@@ -39,6 +40,8 @@ int main(int argc, char** argv) {
 
     server.close();
     serverThread.join();
+
+
 
     return 0;
 }

@@ -214,6 +214,34 @@ public:
     virtual void join_delete(Rower* other) { delete other; };
 };
 
+/*******************************************************************************
+ * Writer class to write over each row
+ * Written by ng.h@husky.neu.edu & pazol.l@husky.neu.edu
+ */
+class Writer {
+public:
+    /** Reads next word and stores it in the row. Actually read the word.
+        While reading the word, we may have to re-fill the buffer  */
+    virtual void visit(Row & r) {}
+
+    /** Returns true when there are no more words to read.  There is nothing
+       more to read if we are at the end of the buffer and the file has
+       all been read.     */
+    virtual bool done() { return false; }
+};
+
+/**
+ * Reader class to read over each row
+ * Written by ng.h@husky.neu.edu & pazol.l@husky.neu.edu
+ */
+class Reader {
+public:
+    /** Reads the next word */
+    virtual bool visit(Row & r) { return false; }
+};
+
+
+
 /****************************************************************************
  * DataFrame::
  *
@@ -483,6 +511,19 @@ public:
         kv->put(&dataFrame, *key);
     }
 
+    static void fromVisitor(Key* key, KVStore* kv, const char* charSchema, Writer* writer) {
+        Schema schema(charSchema);
+        DataFrame dataFrame(schema);
+        Row row(schema);
+
+        while (!writer->done()) {
+            writer->visit(row);
+            dataFrame.add_row(row);
+        }
+
+        kv->put(&dataFrame, *key);
+    }
+
     /**
      * Fills a row with the data that is contained in this data frame at the given row
      * @param row The row to fill with data
@@ -527,5 +568,31 @@ public:
      * @return The element in _columns at the given index as a column
      */
     Column* getColumn(size_t index) { return _columns.get(index)->c; }
+
+    /** Visit rows in order */
+    void map(Reader& r) {
+        Row row(_schema);
+        for (size_t idx = 0; idx < ncols(); idx++) {
+            _fillRow(row, idx);
+            r.visit(row);
+        }
+    }
+
+    void local_map(Reader& r) {
+        Column* column = getColumn(0);
+        ChunkedColumn* chunkedCol = dynamic_cast<ChunkedColumn*>(column);
+        Row row(get_schema());
+        if (chunkedCol != nullptr) {
+            for (size_t i = 0; i < chunkedCol->_chunkCount; i++) {
+                Key* currKey = chunkedCol->_keys[i];
+                if (chunkedCol->isKeyLocal(currKey)) {
+                    for (size_t idx = 0; idx < Column::CHUNK_SIZE && i * Column::CHUNK_SIZE + idx < column->size(); idx++) {
+                        _fillRow(row, i * Column::CHUNK_SIZE + idx);
+                        r.visit(row);
+                    }
+                }
+            }
+        }
+    }
 
 };
