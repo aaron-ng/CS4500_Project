@@ -63,7 +63,7 @@ public:
      * @param dataframe The dataframe to generate the description of
      * @param key The key the dataframe will be stored under
      */
-    class DataframeDescription* _descFrom(class DataFrame* dataframe, Key& key) const;
+    class DataframeDescription* _descFrom(class DataFrame* dataframe, Key& key);
 
     /**
      * Provides the key for the column in the byte stores

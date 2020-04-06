@@ -232,7 +232,7 @@ class KBStore {
         size_t this_node() const { return _client.this_node(); }
 
         /** Provides the number of currently connected nodes  */
-        size_t nodes() const { return _client.clientInformation().numClients; };
+        size_t nodes() { return _client.connectedClients(); };
 
         /**
          * A message handler that performs all of the operations on the KVStore

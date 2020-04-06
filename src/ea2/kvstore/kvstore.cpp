@@ -62,7 +62,7 @@ void KVStore::put(DataFrame* dataframe, Key& key) {
 size_t KVStore::this_node() const { return _byteStore.this_node(); }
 
 /** Generates a description of a dataframe that can be serialized */
-DataframeDescription* KVStore::_descFrom(DataFrame* dataframe, Key& key) const {
+DataframeDescription* KVStore::_descFrom(DataFrame* dataframe, Key& key) {
     // Generate column descriptions
     size_t columns = dataframe->ncols();
     size_t stores = _byteStore.nodes();

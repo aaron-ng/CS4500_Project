@@ -51,7 +51,7 @@ void testTeardownMessage() {
 
 void testClientInformationMessage() {
     Serializer serializer;
-    ClientIdentification info[] = {ClientIdentification(25565, 2602665218), ClientIdentification(35565, 16777343)};
+    ClientIdentification* info = new ClientIdentification[2] {ClientIdentification(25565, 2602665218), ClientIdentification(35565, 16777343)};
     ClientInformation(2, info).serialize(serializer);
 
     Deserializer deserializer(serializer.getSize(), serializer.getBuffer());
@@ -147,8 +147,8 @@ void testClientServer() {
         c1.poll();
     }
 
-    GT_TRUE(c0.clientInformation().numClients == 2);
-    GT_TRUE(c1.clientInformation().numClients == 2);
+    GT_TRUE(c0.connectedClients() == 2);
+    GT_TRUE(c1.connectedClients() == 2);
 
     server.close();
     serverThread.join();

@@ -194,7 +194,7 @@ class Socket {
          */
         void readData(void* data, size_t length) {
             if (recv(_socketFD, data, length, 0) != length) {
-                std::cout << "Read error!" << std::endl;
+                std::cout << "Read error: " << strerror(errno) << std::endl;
                 exit(9);
             }
         }
@@ -203,10 +203,7 @@ class Socket {
          * Closes this socket
          */
         void closeSocket() {
-            if (!_closed) {
-                close(_socketFD);
-                _closed = true;
-            }
+            closeWithHow(2);
         }
 
         /**

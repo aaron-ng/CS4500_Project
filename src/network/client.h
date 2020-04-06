@@ -20,7 +20,7 @@ class RemoteClient {
          * Default constructor
          * @param identification The information for the remote client
          */
-        RemoteClient(ClientIdentification& identification) : _reader(_clientSocket) {
+        RemoteClient(ClientIdentification identification) : _clientSocket(), _reader(_clientSocket) {
             _clientSocket.connectTo(identification.ipAddress, identification.portNum);
         }
 
@@ -77,6 +77,9 @@ class Client {
 
         /** The information for the connected clients */
         ClientInformation _clientInfo;
+
+        /** The mutex for locking the client info */
+        std::mutex infoMutex;
 
         /**
          * Default constructor
@@ -152,7 +155,11 @@ class Client {
                     }
 
                     Deserializer infoDeserializer = response->deserializer();
+
+                    infoMutex.lock();
                     _clientInfo.deserialize(infoDeserializer);
+                    infoMutex.unlock();
+
                     delete response;
                 }
 
@@ -181,7 +188,10 @@ class Client {
          * @param data The data to send to the client
          */
         RemoteClient* send(size_t clientId, Codable& data) {
+            infoMutex.lock();
             RemoteClient* client = new RemoteClient(_clientInfo.information[clientId]);
+            infoMutex.unlock();
+
             client->send(data);
 
             return client;
@@ -198,7 +208,13 @@ class Client {
         /**
          * Provides the information of all of the clients connected to the central server, including this one
          */
-        const ClientInformation& clientInformation() const { return _clientInfo; }
+        size_t connectedClients() {
+            infoMutex.lock();
+            size_t num = _clientInfo.numClients;
+            infoMutex.unlock();
+
+            return num;
+        };
 
         /** Gets the node ID of the client. -1 if not connected to a server */
         uint32_t this_node() const { return _node; }
