@@ -18,7 +18,9 @@ public:
     Key* orig_;
     StrBuff buf_;
 
-    KeyBuff(Key* orig) : orig_(orig), buf_() {}
+    KeyBuff(Key* orig) : orig_(orig), buf_() {
+        buf_.c(orig_->getName());
+    }
 
     KeyBuff& c(String &s) { buf_.c(s); return *this;  }
     KeyBuff& c(size_t v) { buf_.c(v); return *this; }
@@ -37,9 +39,27 @@ public:
  *  CODE BELOW PROVIDED BY INSTRUCTORS AND MODIFIED FOR OUR IMPLEMENTATION
  */
 
-class SIMap: public Map {
+class SIMap {
 public:
     Map _map;
+
+    /**
+     * Wrapper around _map.put
+     * @param key The key to put into the map
+     * @param value The updated number of times this string occurred in the map
+     */
+    void put(String* key, Num* value) {
+        _map.put(key, value);
+    }
+
+    /**
+     * Returns the number of times the string has occurred
+     * @param key The string to get occurances of
+     */
+    Num* get(String* key) {
+        return dynamic_cast<Num*>(_map.get(key));
+    }
+
     /**
      * Wrapper method for the Map.contains_key method
      * @param key the key we are trying to find
@@ -155,7 +175,7 @@ public:
     bool visit(Row& r) override {
         String* word = r.get_string(0);
         assert(word != nullptr);
-        Num* num = map_.contains(word) ? dynamic_cast<Num*>(map_.get(word)) : new Num();
+        Num* num = map_.contains(word) ? map_.get(word) : new Num();
         assert(num != nullptr);
         num->v++;
         map_.put(word, num);
@@ -188,21 +208,21 @@ public:
 
     String* k() {
         if (i==map_.get_size() || j == map_._map.entrySet().size()) return nullptr;
-        return (String*) (map_._map.entrySet()[j]);
+        return (String*) (map_._map.entrySet()[j]->key);
     }
 
     size_t v() {
         if (i == map_.get_size() || j == map_._map.entrySet().size()) {
             assert(false); return 0;
         }
-        return ((Num*)(map_._map.entrySet()[j]))->v;
+        return ((Num*)(map_._map.entrySet()[j])->value)->v;
     }
 
     void visit(Row& r) {
         if (!k()) next();
         String & key = *k();
         size_t value = v();
-        r.set(0, &key);
+        r.set(0, key.clone());
         r.set(1, (int) value);
         next();
     }
@@ -240,7 +260,7 @@ public:
      *  which then joins them one by one. */
     Key* mk_key(size_t idx) {
         Key * k = kbuf.c(idx).get();
-//        LOG("Created key " << k->c_str());
+        std::cout << "Created key " << k->getName() << std::endl;
         return k;
     }
 
@@ -251,9 +271,9 @@ public:
         SIMap map;
         Adder add(map);
         words->local_map(add);
-        delete words;
         Summer cnt(map);
         DataFrame::fromVisitor(mk_key(this_node()), &kv, "SI", &cnt);
+        delete words;
     }
 
     /** Merge the data frames of all nodes */
@@ -262,19 +282,26 @@ public:
         pln("Node 0: reducing counts...");
         SIMap map;
         Key* own = mk_key(0);
-        merge(kv.get(*own), map);
+        DataFrame** dataframes = new DataFrame*[kv._byteStore.nodes()];
+        dataframes[0] = kv.get(*own);
+        merge(dataframes[0], map);
         for (size_t i = 1; i < kv._byteStore.nodes(); ++i) { // merge other nodes
             Key* ok = mk_key(i);
-            merge(kv.waitAndGet(*ok), map);
+            dataframes[i] = kv.waitAndGet(*ok);
+            merge(dataframes[i], map);
             delete ok;
         }
         p("Different words: ").pln(map.get_size());
         delete own;
+
+        for (size_t i = 0; i < kv._byteStore.nodes(); i++) {
+            delete dataframes[i];
+        }
+        delete [] dataframes;
     }
 
     void merge(DataFrame* df, SIMap& m) {
         Adder add(m);
         df->map(add);
-        delete df;
     }
 }; // WordcountDemo

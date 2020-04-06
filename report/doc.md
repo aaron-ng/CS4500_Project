@@ -5,17 +5,21 @@ The EU2 system is distributed system that will be used for large scale data anal
 
 - There is a central server that all of the nodes talk to to figure out what nodes are connected and where they are reachable 
 - Each node runs an instance of an Application class. This is where the application specific logic lives
-- Each node also runs an instance of the KVStore. This talks to the central server to get the list of all of the nodes. If the application requests data that is not on the node that the KVStore is running on, it will use the data it received from the central server to talk to the node that has the data.
-- When a dataframe is stored in the KVStore, the columns of it are each stored on different nodes. When it is requested, the columns are pulled from all of the nodes and turned back into a dataframe.
+- Each node also runs an instance of the KBStore. This talks to the central server to get the list of all of the nodes. If the application requests data that is not on the node that the KBStore is running on, it will use the data it received from the central server to talk to the node that has the data.
+- KVStore wraps KBStore to provide dataframe specific logic 
+- When a dataframe is stored in the KVStore, the columns of it are split into chunks and the chunks are distributed along the connected nodes. When a dataframe is requested, the list of column chunks and the schema is pulled. As values are read from the dataframe the chunks for the columns are lazily loaded from the network.
 
 # Implementation
 
 ##  Classes
 
 `KVStore`
+- Allows for putting and getting data frames
+
+`KBStore`
 - Abstracts away the distributed nature of the key store
 - Manages concurrency and networking 
-- Allows for putting and getting data frames
+- Stores raw bytes under keys
 
 `Key`
 - Stores the home node and the name of an entry in the distributed key store
@@ -29,17 +33,6 @@ The EU2 system is distributed system that will be used for large scale data anal
 - Has convience methods to create a dataframe from a single value or an array of values 
 - Ensures that columns adhere to a schema
 - Allows reading / writing data 
-
-`RemoteClient`
-- An abstraction for sending and recieving messages from another node
-- Allows sending and recieving messages
-- Handles serialization but not deserialization
-
-`Client`
-- Rendezvous with the central server
-- Enables staying up to date with the currently connected nodes
-- Allows for sending messages to other clients
-- Allows for recieving messages from other clients
 
 `Server`
 - Central rendezvous server for nodes

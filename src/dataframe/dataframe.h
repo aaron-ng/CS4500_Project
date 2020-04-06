@@ -572,15 +572,17 @@ public:
     /** Visit rows in order */
     void map(Reader& r) {
         Row row(_schema);
-        for (size_t idx = 0; idx < ncols(); idx++) {
+        for (size_t idx = 0; idx < nrows(); idx++) {
             _fillRow(row, idx);
             r.visit(row);
         }
     }
 
+    /** Visits rows in order if they are stored on this machine */
     void local_map(Reader& r) {
         Column* column = getColumn(0);
         ChunkedColumn* chunkedCol = dynamic_cast<ChunkedColumn*>(column);
+
         Row row(get_schema());
         if (chunkedCol != nullptr) {
             for (size_t i = 0; i < chunkedCol->_chunkCount; i++) {

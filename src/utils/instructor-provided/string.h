@@ -137,7 +137,8 @@ public:
         grow_by_(1);     // ensure space for terminator
         val_[size_] = 0; // terminate
         String *res = new String(true, val_, size_);
-        val_ = nullptr; // val_ was consumed above
+        val_ = new char[capacity_]; // val_ was consumed above
+        size_ = 0;
         return res;
     }
 };

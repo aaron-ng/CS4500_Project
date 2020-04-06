@@ -72,6 +72,7 @@ class ChunkedColumn {
             return _chunks[chunk][idx % Column::CHUNK_SIZE];
         }
 
+        /** Determines if the given key is locally stored on this machine */
         bool isKeyLocal(Key* key) {
             return key->getNode() == _kbstore.this_node();
         }

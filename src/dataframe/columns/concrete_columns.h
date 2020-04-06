@@ -25,7 +25,7 @@ inline void serializeChunkRawElement(Serializer& serializer, size_t idx, Element
     uint64_t elements = chunkSize(idx, column.size());
 
     serializer.write(elements);
-    for (size_t i = 0; i < elements; i++) {
+    for (size_t i = 0; i < elements && idx * Column::CHUNK_SIZE + i < column.size(); i++) {
         serializer.write(*column.get(idx * Column::CHUNK_SIZE + i));
     }
 }
@@ -332,7 +332,7 @@ class FullStringColumn : public StringColumn {
             uint64_t elements = chunkSize(idx, _elements.size());
 
             serializer.write(elements);
-            for (size_t i = 0; i < elements; i++) {
+            for (size_t i = 0; i < elements && idx * Column::CHUNK_SIZE + i < size(); i++) {
                 serializer.write(_elements.get(idx * Column::CHUNK_SIZE + i)->s);
             }
         }

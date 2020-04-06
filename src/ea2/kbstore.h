@@ -114,7 +114,7 @@ class KBStore {
         ByteArray* get(Key& key) {
             if (key._node == _client.this_node()) {
                 ByteArray* existing = (ByteArray*)_map.get(&key);
-                return new ByteArray(existing->contents, existing->length, false);
+                return existing ? new ByteArray(existing->contents, existing->length, false) : existing;
             } else {
                 return _get(key, GET);
             }
