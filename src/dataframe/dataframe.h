@@ -511,17 +511,64 @@ public:
         kv->put(&dataFrame, *key);
     }
 
+    /**
+     * Creates a dataframe from a vistor and uploads it to the KV store.
+     * @param key The key to store the dataframe under
+     * @param kv The key value store to put the dataframe in
+     * @param charSchema The schema of the dataframe
+     * @param writer The visitor to use to create the dataframe
+     */
     static void fromVisitor(Key* key, KVStore* kv, const char* charSchema, Writer* writer) {
         Schema schema(charSchema);
-        DataFrame dataFrame(schema);
         Row row(schema);
-
-        while (!writer->done()) {
+        fromLambda(key, kv, charSchema, [&](DataFrame* df) {
             writer->visit(row);
-            dataFrame.add_row(row);
+            df->add_row(row);
+        }, [&]{ return !writer->done(); });
+    }
+
+    static void fromLambda(Key* key, KVStore* kv, const char* schema, std::function<void(DataFrame*)> populate, std::function<bool()> hasMore) {
+        Schema s(schema);
+        DataFrame* dataFrame = new DataFrame(s);
+
+        size_t nodes = kv->_byteStore.nodes();
+        size_t chunks = 0;
+        size_t rows = 0;
+
+        while (hasMore()) {
+            populate(dataFrame);
+            rows++;
+
+            if (dataFrame->nrows() == Column::CHUNK_SIZE) {
+                kv->putDataframeChunk(*key, dataFrame, chunks, nodes, 0);
+                chunks++;
+
+                delete dataFrame;
+                dataFrame = new DataFrame(s);
+            }
         }
 
-        kv->put(&dataFrame, *key);
+        if (dataFrame->nrows()) {
+            kv->putDataframeChunk(*key, dataFrame, chunks, nodes, 0);
+            chunks++;
+        }
+
+        delete dataFrame;
+
+        // Generate the description
+        size_t columns = s.width();
+        ColumnDescription** descriptions = new ColumnDescription*[columns];
+
+        for (size_t i = 0; i < columns; i++) {
+            Key** chunkKeys = new Key*[chunks];
+
+            for (size_t chunk = 0; chunk < chunks; chunk++) { chunkKeys[chunk] = kv->_keyFor(*key, i, chunk, nodes); }
+            descriptions[i] = new ColumnDescription(chunkKeys, chunks, rows, (ColumnType)s.col_type(i));
+        }
+
+        DataframeDescription* desc = new DataframeDescription(new String(schema), columns, descriptions);
+        kv->putDataframeDesc(*key, desc);
+        delete desc;
     }
 
     /**

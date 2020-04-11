@@ -181,9 +181,16 @@ class Socket {
         void sendData(Codable& data) {
             Serializer serializer;
             data.serialize(serializer);
-            if (send(_socketFD, serializer.getBuffer(), serializer.getSize(), 0) != serializer.getSize()) {
-                std::cout << "Write error!" << std::endl;
-                exit(10);
+
+            size_t sentBytes = 0;
+            while (sentBytes != serializer.getSize()) {
+                int response = send(_socketFD, serializer.getBuffer() + sentBytes, serializer.getSize() - sentBytes, 0);
+                if (response < 1) {
+                    std::cout << "Write error!" << std::endl;
+                    exit(10);
+                } else {
+                    sentBytes += response;
+                }
             }
         }
 
@@ -193,9 +200,15 @@ class Socket {
          * @param length The amount of data to read
          */
         void readData(void* data, size_t length) {
-            if (recv(_socketFD, data, length, 0) != length) {
-                std::cout << "Read error: " << strerror(errno) << std::endl;
-                exit(9);
+            size_t readBytes = 0;
+            while (readBytes != length) {
+                int status = recv(_socketFD, (char*)data + readBytes, length - readBytes, 0);
+                if (status < 1) {
+                    std::cout << "Read error: " << strerror(errno) << std::endl;
+                    exit(9);
+                } else {
+                    readBytes += status;
+                }
             }
         }
 

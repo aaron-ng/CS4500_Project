@@ -120,7 +120,7 @@ public:
     /** Creates the reader and opens the file for reading.  */
     FileReader() {
         // file_ = fopen(arg.file, "r"); // Hardcoded
-        file_ = fopen("../100k.txt", "r");
+        file_ = fopen(".././100k.txt", "r");
         if (file_ == nullptr) exit(15);
         buf_ = new char[BUFSIZE + 1]; //  null terminator
         fillBuffer_();
@@ -191,35 +191,41 @@ public:
     size_t j = 0;
     size_t seen = 0;
 
-    Summer(SIMap& map) : map_(map) {}
+    Summer(SIMap& map) : map_(map) {
+        if (!k()) {
+            next();
+        }
+    }
 
     void next() {
+        assert(!done());
         if (i == map_.get_size() ) return;
-        if (j < map_._map.entrySet().size()) {
-            j++;
-            ++seen;
-        } else {
+        j++;
+        ++seen;
+        if ( j >= map_._map.entrySet().size() ) {
             ++i;
             j = 0;
-            while( i < map_.get_size() && map_._map.entrySet().size() == 0 )  i++;
-            if (k()) ++seen;
+            while( i < map_.get_size() && map_._map.entrySet().size() == 0 ) {
+                i++;
+            }
         }
     }
 
     String* k() {
-        if (i==map_.get_size() || j == map_._map.entrySet().size()) return nullptr;
+        if (i==map_.get_size() || j == map_._map.entrySet().size()) {
+            return nullptr;
+        }
         return (String*) (map_._map.entrySet()[j]->key);
     }
 
     size_t v() {
-        if (i == map_.get_size() || j == map_._map.entrySet().size()) {
+        if (i == map_.get_size() || j ==map_._map.entrySet().size()) {
             assert(false); return 0;
         }
         return ((Num*)(map_._map.entrySet()[j])->value)->v;
     }
 
     void visit(Row& r) {
-        if (!k()) next();
         String & key = *k();
         size_t value = v();
         r.set(0, key.clone());

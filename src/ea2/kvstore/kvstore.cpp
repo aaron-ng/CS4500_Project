@@ -31,26 +31,14 @@ DataFrame* KVStore::waitAndGet(Key& key) {
  * @param key The key of the dataframe in the store
  */
 void KVStore::put(DataFrame* dataframe, Key& key) {
-    DataframeDescription* description = _descFrom(dataframe, key);
+    size_t stores = _byteStore.nodes();
+    DataframeDescription* description = _descFrom(dataframe, key, stores);
 
-    for (size_t i = 0; i < description->numColumns; i++) {
-        ColumnDescription* desc = description->columns[i];
-        Column* column = dataframe->getColumn(i);
-
-        for (size_t chunk = 0; chunk < desc->chunks; chunk++) {
-            Key& chunkKey = *desc->keys[chunk];
-
-            Serializer serializer;
-            column->serializeChunk(serializer, chunk);
-
-            _byteStore.put(serializer.getBuffer(), serializer.getSize(), chunkKey);
-        }
+    for (uint64_t i = 0; i < dataframe->getColumn(0)->numChunks(); i++) {
+        putDataframeChunk(key, dataframe, i, stores);
     }
 
-    Serializer serializer;
-    description->serialize(serializer);
-
-    _byteStore.put(serializer.getBuffer(), serializer.getSize(), key);
+    putDataframeDesc(key, description);
 
     delete description;
 }
@@ -62,10 +50,9 @@ void KVStore::put(DataFrame* dataframe, Key& key) {
 size_t KVStore::this_node() const { return _byteStore.this_node(); }
 
 /** Generates a description of a dataframe that can be serialized */
-DataframeDescription* KVStore::_descFrom(DataFrame* dataframe, Key& key) {
+DataframeDescription* KVStore::_descFrom(DataFrame* dataframe, Key& key, size_t stores) {
     // Generate column descriptions
     size_t columns = dataframe->ncols();
-    size_t stores = _byteStore.nodes();
     ColumnDescription** descriptions = new ColumnDescription*[columns];
 
     for (size_t i = 0; i < columns; i++) {
@@ -74,7 +61,7 @@ DataframeDescription* KVStore::_descFrom(DataFrame* dataframe, Key& key) {
         Key** chunkKeys = new Key*[numChunks];
 
         for (size_t chunk = 0; chunk < numChunks; chunk++) {
-            chunkKeys[chunk] = _keyFor(key, i, chunk, chunk % stores);
+            chunkKeys[chunk] = _keyFor(key, i, chunk, stores);
         }
 
         descriptions[i] = new ColumnDescription(chunkKeys, numChunks, column->size(), (ColumnType)dataframe->get_schema().col_type(i));
@@ -83,11 +70,9 @@ DataframeDescription* KVStore::_descFrom(DataFrame* dataframe, Key& key) {
     return new DataframeDescription(new String(dataframe->get_schema().types()), columns, descriptions);
 }
 
-// Names up until 1024 including the column numbers are supported. No actual checking is done
-char keyBuffer[1024];
-Key* KVStore::_keyFor(const Key& key, size_t column, size_t chunk, size_t node) const {
-    sprintf(keyBuffer, "%s-%zu-%zu", key.getName(), column, chunk);
-    return new Key(keyBuffer, node);
+Key* KVStore::_keyFor(const Key& key, size_t column, size_t chunk, size_t nodes) {
+    sprintf(_keyBuffer, "%s-%zu-%zu", key.getName(), column, chunk);
+    return new Key(_keyBuffer, chunk % nodes);
 }
 
 DataFrame *KVStore::_dataframeFrom(ByteArray* bytes) {
@@ -109,9 +94,28 @@ DataFrame *KVStore::_dataframeFrom(ByteArray* bytes) {
 
         Column* newColumn = allocateChunkedColumnOfType(colDesc->type, keyCopies, colDesc->chunks, _byteStore, colDesc->totalLength);
         dataframe->add_column(newColumn, nullptr);
-
     }
 
     delete bytes;
     return dataframe;
+}
+
+void KVStore::putDataframeChunk(const Key& key, DataFrame* dataframe, size_t chunk, size_t nodes, long int serializedChunk) {
+    for (size_t col = 0; col < dataframe->ncols(); col++) {
+        Column* column = dataframe->getColumn(col);
+
+        Key* chunkKey = _keyFor(key, col, chunk, nodes);
+        Serializer serializer;
+        column->serializeChunk(serializer, serializedChunk == -1 ? chunk : serializedChunk);
+
+        _byteStore.put(serializer.getBuffer(), serializer.getSize(), *chunkKey);
+        delete chunkKey;
+    }
+}
+
+void KVStore::putDataframeDesc(Key &key, DataframeDescription *desc) {
+    Serializer serializer;
+    desc->serialize(serializer);
+
+    _byteStore.put(serializer.getBuffer(), serializer.getSize(), key);
 }

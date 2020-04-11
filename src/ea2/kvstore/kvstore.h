@@ -62,8 +62,9 @@ public:
      * Generates a description of the dataframe in the distributed key store.
      * @param dataframe The dataframe to generate the description of
      * @param key The key the dataframe will be stored under
+     * @param stores The number of stores
      */
-    class DataframeDescription* _descFrom(class DataFrame* dataframe, Key& key);
+    class DataframeDescription* _descFrom(class DataFrame* dataframe, Key& key, size_t stores);
 
     /**
      * Provides the key for the column in the byte stores
@@ -73,7 +74,7 @@ public:
      * @param node The node for the key
      * @return The key for the column in a dataframe stored under the given key
      */
-    Key* _keyFor(const Key& key, size_t column, size_t chunk, size_t node) const;
+    Key* _keyFor(const Key& key, size_t column, size_t chunk, size_t node);
 
     /**
      * Creates a new dataframe using the dataframe description
@@ -81,5 +82,26 @@ public:
      * @return A new dataframe
      */
     DataFrame* _dataframeFrom(ByteArray* desc);
+
+    /**
+     * Puts a single chunk from all of the columns in the data store
+     * @param key The key to use for the datafame
+     * @param dataframe The dataframe to put chunks of
+     * @param chunk The chunk index to put into the store
+     * @param nodes The number of nodes that are connected
+     * @param serializedChunk Optional. If this is set, the actual contents of what gets put will be the chunk
+     *                        at that index
+     */
+    void putDataframeChunk(const Key& key, DataFrame* dataframe, size_t chunk, size_t nodes, long int serializedChunk = -1);
+
+    /**
+     * Puts the dataframe description into the store
+     * @param key The key to put the description under
+     * @param desc The description to put
+     */
+    void putDataframeDesc(Key& key, DataframeDescription* desc);
+
+    /** Names up until 1024 including the column numbers are supported. No actual checking is done */
+    char _keyBuffer[1024];
 
 };
