@@ -5,6 +5,7 @@
 #include "valueproducer.h"
 #include "../../utils/column_type.h"
 #include "../../utils/instructor-provided/string.h"
+#include "../../dataframe/utils.h"
 
 /** A value producer for a string */
 class StringProducer: public ValueProducer {
@@ -63,7 +64,7 @@ class StringProducer: public ValueProducer {
  * @param allowDecimals true if decimals should be allowed
  * @return true if the string is a valid number, false otherwise
  */
-bool isValidNumber(const std::string& str, bool allowDecimals = false) {
+inline bool isValidNumber(const std::string& str, bool allowDecimals = false) {
     if (str.size() < 1) {
         return false;
     }

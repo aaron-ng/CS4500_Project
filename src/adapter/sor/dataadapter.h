@@ -6,6 +6,7 @@
 #include "../../dataframe/dataframe.h"
 #include "lineparser.h"
 #include "../values/valuefactory.h"
+#include "../../dataframe/utils.h"
 
 /** A class that will build a Sor schema from a stream */
 class DataAdapter {
@@ -22,13 +23,11 @@ class DataAdapter {
         DataAdapter() : lineParser(), valueFactory() {}
 
         /**
-         * Builds a dataframe from a file. This will scan over the first 500 lines, or the entire file, whichever is smaller.
-         * The longest line will be parsed, and the resulting schema will be returned. If the longest line is malformed,
-         * the schema is considered malformed and an exception is thrown.
-         * @param file The file to read from
-         * @return The resulting dataframe
+         * Determines the schema from a file
+         * @param file The file to determine the schema from
+         * @return The schema for the file
          */
-        DataFrame* build(FILE* file) const {
+        Schema determineSchema(FILE* file) {
             std::vector<ColumnType > types;
             rewind(file);
 
@@ -56,43 +55,27 @@ class DataAdapter {
             Schema schema(schemaStr.c_str());
 
             rewind(file);
-            return populate(file, schema);
+            return schema;
         }
 
-    private:
-
         /**
-         * Builds a dataframe using a schema. Each line in the file will correspond to a row in the dataframe
-         *
-         * @param file The file to read from.
-         * @param columns The columns to populate. This is interpreted as the schema of the file
-         * @param readEnd The byte offset at which to stop reading. Any line that intersects that byte offset
-         *                will be ignored. -1 will read the entire file.
+         * Reads a single row from the SOR file
+         * @param row The row to write the values to
+         * @param file The file to read from
+         * @param schema The schema of the row
+         * @return true if there is more data to read, false otherwise
          */
-        DataFrame* populate(FILE* file, Schema& schema, long int readEnd = -1) const {
-            size_t startingPos = ftell(file);
-            size_t currentPos = startingPos;
-
+        bool read(Row& row, FILE* file, Schema& schema) {
             char* line = nullptr;
             size_t length = 0;
             size_t read = 0;
 
-            Row row(schema);
-            DataFrame* dataFrame = new DataFrame(schema);
-
-            while ((read = getline(&line, &length, file)) && read != EOF && (readEnd == -1 || currentPos + read <= readEnd)) {
+            if ((read = getline(&line, &length, file)) && read != EOF) {
                 std::vector<std::string> tokens = lineParser.parseTokens(line, schema.width());
 
                 valueFactory.populateRow(schema, tokens, row);
-                dataFrame->add_row(row);
-
-                currentPos += read;
-            }
-
-            if (line) { free(line); }
-            fseek(file, startingPos, SEEK_SET);
-
-            return dataFrame;
+                return true;
+            } else { return false; }
         }
 
 };
