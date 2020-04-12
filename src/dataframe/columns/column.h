@@ -17,7 +17,7 @@ class Column : public Object {
     public:
 
         /** The number of elements in one chunk */
-        static const size_t CHUNK_SIZE = 512;
+        static const size_t CHUNK_SIZE = 2500000;
 
         virtual ~Column() {}
 

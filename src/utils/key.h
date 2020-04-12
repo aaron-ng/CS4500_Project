@@ -14,8 +14,15 @@ class Key: public Object {
          * @param name The name of the key
          * @param node the home node of the key
          */
-        Key(const char* name, size_t node = 0) {
-            _name = new String(name);
+        Key(const char* name, size_t node = 0) : Key(new String(name), node) {}
+
+        /**
+         * Creates a new key
+         * @param name The name of the key
+         * @param node the home node of the key
+         */
+        Key(String* name, size_t node = 0) {
+            _name = name;
             _node = node;
         }
 

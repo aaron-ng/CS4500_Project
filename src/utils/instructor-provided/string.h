@@ -113,6 +113,11 @@ public:
         val_ = new char[capacity_ = 10];
         size_ = 0;
     }
+
+    StrBuff(const char* initial) : StrBuff() {
+        c(initial);
+    }
+
     void grow_by_(size_t step) {
         if (step + size_ < capacity_) return;
         capacity_ *= 2;
@@ -131,6 +136,7 @@ public:
     }
     StrBuff& c(String &s) { return c(s.c_str());  }
     StrBuff& c(size_t v) { return c(std::to_string(v).c_str());  } // Cpp
+    StrBuff& c(int v) { return c(std::to_string(v).c_str());  } // Cpp
 
     String* get() {
         assert(val_ != nullptr); // can be called only once
