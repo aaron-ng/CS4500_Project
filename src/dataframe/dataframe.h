@@ -359,6 +359,7 @@ public:
         fromLambda(key, kv, charSchema, [&](DataFrame* df) {
             writer->visit(row);
             df->add_row(row);
+            return true;
         }, [&]{ return !writer->done(); });
     }
 
@@ -382,8 +383,11 @@ public:
         bool more = true;
         fromLambda(key, kv, schema._types, [&](DataFrame* df){
             more = adapter.read(row, file, schema);
-            df->add_row(row);
+            if (more) { df->add_row(row); }
+            return more;
         }, [&] { return more; });
+
+        fclose(file);
     }
 
     /**
@@ -391,10 +395,10 @@ public:
      * @param key The key to store the dataframe under
      * @param kv The key value store to store the dataframe in
      * @param schema The schema of the dataframe
-     * @param populate A lambda that adds a single row to the given dataframe
+     * @param populate A lambda that adds a single row to the given dataframe. This should return true if a new row was added
      * @param hasMore A lambda that returns true if there is more data to read
      */
-    static void fromLambda(Key* key, KVStore* kv, const char* schema, std::function<void(DataFrame*)> populate, std::function<bool()> hasMore) {
+    static void fromLambda(Key* key, KVStore* kv, const char* schema, std::function<bool(DataFrame*)> populate, std::function<bool()> hasMore) {
         Schema s(schema);
         DataFrame* dataFrame = new DataFrame(s);
 
@@ -403,15 +407,16 @@ public:
         size_t rows = 0;
 
         while (hasMore()) {
-            populate(dataFrame);
-            rows++;
+            if (populate(dataFrame)) {
+                rows++;
 
-            if (dataFrame->nrows() == Column::CHUNK_SIZE) {
-                kv->putDataframeChunk(*key, dataFrame, chunks, nodes, 0);
-                chunks++;
+                if (dataFrame->nrows() == Column::CHUNK_SIZE) {
+                    kv->putDataframeChunk(*key, dataFrame, chunks, nodes, 0);
+                    chunks++;
 
-                delete dataFrame;
-                dataFrame = new DataFrame(s);
+                    delete dataFrame;
+                    dataFrame = new DataFrame(s);
+                }
             }
         }
 

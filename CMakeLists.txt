@@ -43,6 +43,7 @@ add_subdirectory(${CMAKE_CURRENT_BINARY_DIR}/googletest-src
 find_package (Threads)
 
 add_executable(main src/main.cpp src/ea2/kvstore/kvstore.cpp)
+add_executable(server src/server.cpp)
 target_link_libraries (main ${CMAKE_THREAD_LIBS_INIT})
 
 add_executable(tests src/ea2/kvstore/kvstore.cpp
@@ -53,6 +54,6 @@ add_executable(tests src/ea2/kvstore/kvstore.cpp
         test/test_network.cpp
         test/test_map.cpp
         test/test_adapter.cpp
-        test/test_demo.cpp
+        test/test_applications.cpp
 )
 target_link_libraries (tests ${CMAKE_THREAD_LIBS_INIT} gtest)

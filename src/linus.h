@@ -1,8 +1,6 @@
 #include "dataframe/dataframe.h"
 #include "ea2/application.h"
 
-#define NUM_NODES 4
-
 /**
  * The input data is a processed extract from GitHub.
  *
@@ -160,8 +158,8 @@ public:
     int uid = row.get_int(1);
     if (pSet.test(pid))
       if(!uSet.test(uid)) {
-	uSet.set(uid);
-	newUsers.set(uid);
+	    uSet.set(uid);
+	    newUsers.set(uid);
       }
     return false;
   }
@@ -176,16 +174,17 @@ class Linus : public Application {
 public:
   int DEGREES = 4;  // How many degrees of separation form linus?
   int LINUS = 4967;   // The uid of Linus (offset in the user df)
-  const char* PROJ = "datasets/projects.ltgt";
-  const char* USER = "datasets/users.ltgt";
-  const char* COMM = "datasets/commits.ltgt";
+  const char* PROJ;
+  const char* USER;
+  const char* COMM;
+  size_t NUM_NODES;
   DataFrame* projects; //  pid x project name
   DataFrame* users;  // uid x user name
   DataFrame* commits;  // pid x uid x uid
   Set* uSet; // Linus' collaborators
   Set* pSet; // projects of collaborators
 
-  Linus(size_t idx, KVStore& kv): Application(idx, kv) {}
+  Linus(size_t idx, KVStore& kv, const char* _PROJ, const char* _USER, const char* _COMM, size_t _NUM_NODES): Application(idx, kv), PROJ(_PROJ), USER(_USER), COMM(_COMM), NUM_NODES(_NUM_NODES) {}
 
   /** Compute DEGREES of Linus.  */
   void _run() override {
@@ -206,18 +205,21 @@ public:
     if (this_node() == 0) {
         pln("Reading...");
         DataFrame::fromFile(PROJ, &pK, &kv);
-        p("    ").p(projects->nrows()).pln(" projects");
         DataFrame::fromFile(USER, &uK, &kv);
-        p("    ").p(users->nrows()).pln(" users");
         DataFrame::fromFile(COMM, &cK, &kv);
-        p("    ").p(commits->nrows()).pln(" commits");
         // This dataframe contains the id of Linus.
         DataFrame::fromScalar(new Key("users-0-0"), &kv, LINUS);
     }
 
-   projects = kv.waitAndGet(pK);
-   users = kv.waitAndGet(uK);
-   commits = kv.waitAndGet(cK);
+    projects = kv.waitAndGet(pK);
+    users = kv.waitAndGet(uK);
+    commits = kv.waitAndGet(cK);
+
+    if (this_node() == 0) {
+        p("    ").p(projects->nrows()).pln(" projects");
+        p("    ").p(users->nrows()).pln(" users");
+        p("    ").p(commits->nrows()).pln(" commits");
+   }
 
     uSet = new Set(users);
     pSet = new Set(projects);

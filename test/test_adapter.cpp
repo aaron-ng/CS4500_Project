@@ -6,6 +6,7 @@
 #include "../src/adapter/values/valuefactory.h"
 #include "../src/adapter/sor/lineparser.h"
 #include "../src/adapter/sor/dataadapter.h"
+#include "../src/dataframe/dataframe.h"
 
 /* Start value producer tests                                      */
 /*-----------------------------------------------------------------*/
@@ -251,7 +252,13 @@ void testFile() {
     DataAdapter adapter;
 
     FILE* f = fopen("../data/data.sor", "r");
-    DataFrame* dataFrame = adapter.build(f);
+    Schema schema = adapter.determineSchema(f);
+    DataFrame* dataFrame = new DataFrame(schema);
+
+    Row row(schema);
+    while (adapter.read(row, f, schema)) {
+        dataFrame->add_row(row);
+    }
 
     fclose(f);
 

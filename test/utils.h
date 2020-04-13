@@ -2,12 +2,13 @@
 
 #include "../src/ea2/kvstore/kvstore.h"
 #include "../src/network/server.h"
+#include "../src/dataframe/columns/column.h"
 
 #define GT_TRUE(a)   ASSERT_EQ((a),true)
 #define GT_FALSE(a)  ASSERT_EQ((a),false)
 #define ASSERT_EXIT_ZERO(a) ASSERT_EXIT(a(), ::testing::ExitedWithCode(0), ".*");
 
-inline void storeOperation(std::function<void(std::vector<KVStore*>&)> op) {
+inline void storeOperation(std::function<bool(std::vector<KVStore*>&)> op) {
     Server server(inet_addr("127.0.0.1"), SERVER_PORT);
     std::thread serverThread([&] {
         server.run();
@@ -23,7 +24,7 @@ inline void storeOperation(std::function<void(std::vector<KVStore*>&)> op) {
 
     sleep(1);
 
-    op(stores);
+    GT_TRUE(op(stores));
 
     server.close();
     serverThread.join();

@@ -3,7 +3,6 @@
 #include <stdio.h>
 #include <algorithm>
 
-#include "../../dataframe/dataframe.h"
 #include "lineparser.h"
 #include "../values/valuefactory.h"
 #include "../../dataframe/utils.h"

@@ -59,6 +59,8 @@ void testKVStoreMethods() {
 
         DataFrame* retrievedDF2 = kvStore.waitAndGet(key);
         testDataFrameEquality(&dataFrame, retrievedDF2);
+
+        return true;
     });
 
     exit(0);
@@ -117,6 +119,8 @@ void testMultipleKVPut() {
 
         DataFrame *retrievedDF4 = kvStore.get(key2);
         testDataFrameEquality(retrievedDF3, retrievedDF4);
+
+        return true;
     });
 
     exit(0);
@@ -176,6 +180,7 @@ void testMultipleKVPutDifferentNodes() {
         DataFrame *retrievedDF4 = kvStore.get(key2);
         testDataFrameEquality(retrievedDF3, retrievedDF4);
 
+        return true;
     });
 
     exit(0);
@@ -200,13 +205,14 @@ void testStoreDoesntDeadlock() {
         kvStore.put(&dataFrame, k);
 
         for (size_t i = 0; i < threads.size(); i++) { threads[i].join(); }
+        return true;
     });
 
     exit(0);
 }
 
 void testFromArray() {
-    storeOperation([&](std::vector<KVStore*>& stores) {
+    storeOperation([&](std::vector<KVStore*>& stores) -> bool {
 
         KVStore &kvStore = *stores[0];
 
@@ -231,23 +237,23 @@ void testFromArray() {
         DataFrame *sd = kvStore.get(s);
 
         for (size_t i = 0; i < 3; i++) {
-            GT_TRUE(dd->get_double(0, i) == ds[i]);
-            GT_TRUE(id->get_int(0, i) == is[i]);
-            GT_TRUE(bd->get_bool(0, i) == bs[i]);
-            GT_TRUE(sd->get_string(0, i)->equals(ss[i]));
+            assert(dd->get_double(0, i) == ds[i]);
+            assert(id->get_int(0, i) == is[i]);
+            assert(bd->get_bool(0, i) == bs[i]);
+            assert(sd->get_string(0, i)->equals(ss[i]));
         }
 
-        GT_TRUE(dd->ncols() == 1);
-        GT_TRUE(dd->nrows() == 3);
+        assert(dd->ncols() == 1);
+        assert(dd->nrows() == 3);
 
-        GT_TRUE(id->ncols() == 1);
-        GT_TRUE(id->nrows() == 3);
+        assert(id->ncols() == 1);
+        assert(id->nrows() == 3);
 
-        GT_TRUE(bd->ncols() == 1);
-        GT_TRUE(bd->nrows() == 3);
+        assert(bd->ncols() == 1);
+        assert(bd->nrows() == 3);
 
-        GT_TRUE(sd->ncols() == 1);
-        GT_TRUE(sd->nrows() == 3);
+        assert(sd->ncols() == 1);
+        assert(sd->nrows() == 3);
 
         delete dd;
         delete id;
@@ -258,14 +264,14 @@ void testFromArray() {
             delete ss[i];
         }
 
+        return true;
     });
 
     exit(0);
 }
 
 void testFromScalar() {
-    storeOperation([&](std::vector<KVStore*>& stores) {
-
+    storeOperation([&](std::vector<KVStore*>& stores) -> bool {
         KVStore &kvStore = *stores[0];
 
         Key d("DOUBLE", 0);
@@ -288,28 +294,57 @@ void testFromScalar() {
         DataFrame *bd = kvStore.get(b);
         DataFrame *sd = kvStore.get(s);
 
-        GT_TRUE(dd->get_double(0, 0) == dv);
-        GT_TRUE(id->get_int(0, 0) == iv);
-        GT_TRUE(bd->get_bool(0, 0) == bv);
-        GT_TRUE(sd->get_string(0, 0)->equals(&sv));
+        assert(dd->get_double(0, 0) == dv);
+        assert(id->get_int(0, 0) == iv);
+        assert(bd->get_bool(0, 0) == bv);
+        assert(sd->get_string(0, 0)->equals(&sv));
 
-        GT_TRUE(dd->ncols() == 1);
-        GT_TRUE(dd->nrows() == 1);
+        assert(dd->ncols() == 1);
+        assert(dd->nrows() == 1);
 
-        GT_TRUE(id->ncols() == 1);
-        GT_TRUE(id->nrows() == 1);
+        assert(id->ncols() == 1);
+        assert(id->nrows() == 1);
 
-        GT_TRUE(bd->ncols() == 1);
-        GT_TRUE(bd->nrows() == 1);
+        assert(bd->ncols() == 1);
+        assert(bd->nrows() == 1);
 
-        GT_TRUE(sd->ncols() == 1);
-        GT_TRUE(sd->nrows() == 1);
+        assert(sd->ncols() == 1);
+        assert(sd->nrows() == 1);
 
         delete dd;
         delete id;
         delete bd;
         delete sd;
 
+        return true;
+    });
+
+    exit(0);
+}
+
+void testFromFile() {
+    storeOperation([&](std::vector<KVStore*>& stores) -> bool {
+        KVStore &kvStore = *stores[0];
+
+        Key file("FILE", 0);
+        DataFrame::fromFile("../data/commits.ltgt", &file, &kvStore);
+
+        DataFrame* data = kvStore.get(file);
+        assert(data->ncols() == 3);
+        assert(data->nrows() == 8);
+        assert(!strcmp(data->get_schema()._types, "III"));
+
+        int projects[] = {0, 0, 2, 2, 3, 3, 1, 1};
+        int authors[] = {0, 1, 0, 4967, 2, 0, 2, 3};
+
+        for (int i = 0; i < data->nrows(); i++) {
+            assert(data->get_int(0, i) == projects[i]);
+            assert(data->get_int(1, i) == authors[i]);
+            assert(data->get_int(2, i) == authors[i]);
+        }
+
+        delete data;
+        return true;
     });
 
     exit(0);
@@ -321,3 +356,4 @@ TEST(W3, testMultipleKVPutDifferentNodes) { ASSERT_EXIT_ZERO(testMultipleKVPutDi
 TEST(W3, testStoreDoesntDeadlock) { ASSERT_EXIT_ZERO(testStoreDoesntDeadlock) }
 TEST(W3, testFromArray) { ASSERT_EXIT_ZERO(testFromArray) }
 TEST(W3, testFromScalar) { ASSERT_EXIT_ZERO(testFromScalar) }
+TEST(W3, testFromFile) { ASSERT_EXIT_ZERO(testFromFile) }
