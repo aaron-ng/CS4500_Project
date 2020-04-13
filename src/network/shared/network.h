@@ -182,6 +182,7 @@ class Socket {
             Serializer serializer;
             data.serialize(serializer);
 
+            if (!serializer.getSize()) { return; }
             size_t sentBytes = 0;
             while (sentBytes != serializer.getSize()) {
                 int response = send(_socketFD, serializer.getBuffer() + sentBytes, serializer.getSize() - sentBytes, 0);
@@ -200,6 +201,8 @@ class Socket {
          * @param length The amount of data to read
          */
         void readData(void* data, size_t length) {
+            if (!length) { return; }
+
             size_t readBytes = 0;
             while (readBytes != length) {
                 int status = recv(_socketFD, (char*)data + readBytes, length - readBytes, 0);

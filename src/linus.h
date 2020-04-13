@@ -181,8 +181,8 @@ public:
   DataFrame* projects; //  pid x project name
   DataFrame* users;  // uid x user name
   DataFrame* commits;  // pid x uid x uid
-  Set* uSet; // Linus' collaborators
-  Set* pSet; // projects of collaborators
+  Set* uSet = nullptr; // Linus' collaborators
+  Set* pSet = nullptr; // projects of collaborators
 
   Linus(size_t idx, KVStore& kv, const char* _PROJ, const char* _USER, const char* _COMM, size_t _NUM_NODES): Application(idx, kv), PROJ(_PROJ), USER(_USER), COMM(_COMM), NUM_NODES(_NUM_NODES) {}
 
@@ -192,12 +192,20 @@ public:
     for (size_t i = 0; i < DEGREES; i++) step(i);
   }
 
-  /** Node 0 reads three files, cointainng projects, users and commits, and
-   *  creates thre dataframes. All other nodes wait and load the three
-   *  dataframes. Once we know the size of users and projects, we create
-   *  sets of each (uSet and pSet). We also output a data frame with a the
-   *  'tagged' users. At this point the dataframe consists of only
-   *  Linus. **/
+  virtual ~Linus() {
+      delete uSet;
+      delete pSet;
+      delete projects;
+      delete users;
+      delete commits;
+  }
+
+    /** Node 0 reads three files, cointainng projects, users and commits, and
+     *  creates thre dataframes. All other nodes wait and load the three
+     *  dataframes. Once we know the size of users and projects, we create
+     *  sets of each (uSet and pSet). We also output a data frame with a the
+     *  'tagged' users. At this point the dataframe consists of only
+     *  Linus. **/
   void readInput() {
     Key pK("projs");
     Key uK("usrs");

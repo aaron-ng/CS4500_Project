@@ -105,7 +105,7 @@ public:
  *  author: jv */
 class StrBuff : public Object {
 public:
-    char *val_; // owned; consumed by get()
+    char *val_ = nullptr; // owned; consumed by get()
     size_t capacity_;
     size_t size_;
 
@@ -118,7 +118,11 @@ public:
         c(initial);
     }
 
-    void grow_by_(size_t step) {
+    virtual ~StrBuff() {
+        delete [] val_;
+    }
+
+        void grow_by_(size_t step) {
         if (step + size_ < capacity_) return;
         capacity_ *= 2;
         if (step + size_ >= capacity_) capacity_ += step;        
