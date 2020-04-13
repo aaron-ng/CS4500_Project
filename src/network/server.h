@@ -25,7 +25,7 @@ class ServerClientInfo {
         ServerClientInfo(const ClientIdentification &identification, Socket *socket) : identification(identification), socket(socket) {};
 
         ~ServerClientInfo() {
-            socket->closeSocket();
+            socket->closeWithHow(2);
             delete socket;
         }
 
@@ -59,13 +59,26 @@ class Server {
                 delete _clients.get(i)->cI;
             }
 
-            _s.closeSocket();
+            _s.closeWithHow(2);
         }
 
         /** Starts listening to incoming connections and serving the list of connected clients to any incoming clients */
         void run() {
             if (!_tornDown) {
                 while (!_tornDown) {
+
+                    for (size_t i = 0; i < _clients.size(); i++) {
+                        if (_clients.get(i)->cI->socket->hasData()) {
+                            MessageReader reader(*_clients.get(i)->cI->socket);
+                            Message* message = reader.readMessage();
+
+                            if (message->type == TEARDOWN) {
+                                _tornDown = true;
+                            }
+
+                            delete message;
+                        }
+                    }
 
                     // Connect a new client
                     Socket* newConnection = _s.acceptConnection(false);
@@ -109,7 +122,7 @@ class Server {
             for (size_t i = 0; i < _clients.size(); i++) {
                 Socket* socket = _clients.get(i)->cI->socket;
                 socket->sendData(teardown);
-                socket->closeSocket();
+                socket->closeWithHow(2);
             }
         }
 

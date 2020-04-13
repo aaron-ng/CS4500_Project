@@ -30,7 +30,7 @@ class RemoteClient {
          */
         RemoteClient(Socket& socket) : _clientSocket(socket._socketFD), _reader(_clientSocket) {}
 
-        ~RemoteClient() { _clientSocket.closeSocket(); }
+        ~RemoteClient() { _clientSocket.closeWithHow(2); }
 
         /**
          * Sends a message to the remote client
@@ -91,8 +91,8 @@ class Client {
         }
 
         ~Client() {
-            if (_serverSocket) { _serverSocket->closeSocket(); }
-            _listeningSocket.closeSocket();
+            if (_serverSocket) { _serverSocket->closeWithHow(2); }
+            _listeningSocket.closeWithHow(2);
 
             delete _serverSocket;
             delete _handler;
@@ -135,6 +135,12 @@ class Client {
          * Determines if the client is listening to messages and connected to the central server
          */
         bool connected() { return _serverSocket && _serverSocket->isOpen(); }
+
+        /** Asks the server to tear down the entire system */
+        void teardownSystem() {
+            Teardown teardown;
+            _serverSocket->sendData(teardown);
+        }
 
         /**
          * Reads data from the central server if there is any. If the server tears the client down,
@@ -201,7 +207,11 @@ class Client {
          * Closes out the socket with the server and the listening socket
          */
         void _teardown() {
-            _serverSocket->closeSocket();
+            if (_serverSocket) {
+                _serverSocket->closeWithHow(2);
+                delete _serverSocket;
+            }
+
             _serverSocket = nullptr;
         }
 

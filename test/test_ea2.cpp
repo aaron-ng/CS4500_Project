@@ -12,18 +12,18 @@ void testDataFrameEquality(DataFrame* df1, DataFrame* df2) {
     Schema s1 = df1->get_schema();
     Schema s2 = df2->get_schema();
 
-    GT_TRUE(s1.width() == s2.width());
-    GT_TRUE(df1->nrows() == df2->nrows());
-    GT_TRUE(df1->ncols() == df2->ncols());
-    GT_TRUE(df1->nrows() == df2->nrows());
+    assert(s1.width() == s2.width());
+    assert(df1->nrows() == df2->nrows());
+    assert(df1->ncols() == df2->ncols());
+    assert(df1->nrows() == df2->nrows());
     for (int i = 0; i < s1.width(); i++) {
-        GT_TRUE(s1.col_type(i) == s2.col_type(i));
+        assert(s1.col_type(i) == s2.col_type(i));
     }
     for (int i = 0; i < df1->nrows(); i++) {
-        GT_TRUE(df1->get_int(0, i) == df2->get_int(0, i));
-        GT_TRUE(strcmp(df1->get_string(1, i)->c_str(), df2->get_string(1, i)->c_str()) == 0);
-        GT_TRUE(df1->get_bool(2, i) == df2->get_bool(2, i));
-        GT_TRUE(df1->get_double(3, i) == df2->get_double(3, i));
+        assert(df1->get_int(0, i) == df2->get_int(0, i));
+        assert(strcmp(df1->get_string(1, i)->c_str(), df2->get_string(1, i)->c_str()) == 0);
+        assert(df1->get_bool(2, i) == df2->get_bool(2, i));
+        assert(df1->get_double(3, i) == df2->get_double(3, i));
     }
 }
 
@@ -38,8 +38,7 @@ void testKVStoreMethods() {
 
         currRow.set(0, i);
         sprintf(buffer, "ITEM%i", i);
-        String currStr(buffer);
-        currRow.set(1, &currStr);
+        currRow.set(1, new String(buffer));
         currRow.set(2, false);
         currRow.set(3, f);
 
@@ -60,6 +59,9 @@ void testKVStoreMethods() {
         DataFrame* retrievedDF2 = kvStore.waitAndGet(key);
         testDataFrameEquality(&dataFrame, retrievedDF2);
 
+        delete retrievedDF1;
+        delete retrievedDF2;
+
         return true;
     });
 
@@ -78,8 +80,7 @@ void testMultipleKVPut() {
         Row currRow1(schema);
         currRow1.set(0, i);
         sprintf(buffer, "ITEM%i", i);
-        String currStr1(buffer);
-        currRow1.set(1, &currStr1);
+        currRow1.set(1, new String(buffer));
         currRow1.set(2, false);
         currRow1.set(3, f);
         dataFrame.add_row(currRow1);
@@ -89,8 +90,7 @@ void testMultipleKVPut() {
         double df2Double = f + 20.0;
         currRow2.set(0, df2Int);
         sprintf(buffer2, "DF2_ITEM%i", i);
-        String currStr2(buffer2);
-        currRow2.set(1, &currStr2);
+        currRow2.set(1, new String(buffer2));
         currRow2.set(2, true);
         currRow2.set(3, df2Double);
         dataFrame2.add_row(currRow2);
@@ -120,6 +120,11 @@ void testMultipleKVPut() {
         DataFrame *retrievedDF4 = kvStore.get(key2);
         testDataFrameEquality(retrievedDF3, retrievedDF4);
 
+        delete retrievedDF1;
+        delete retrievedDF2;
+        delete retrievedDF3;
+        delete retrievedDF4;
+
         return true;
     });
 
@@ -138,8 +143,7 @@ void testMultipleKVPutDifferentNodes() {
         Row currRow1(schema);
         currRow1.set(0, i);
         sprintf(buffer, "ITEM%i", i);
-        String currStr1(buffer);
-        currRow1.set(1, &currStr1);
+        currRow1.set(1, new String(buffer));
         currRow1.set(2, false);
         currRow1.set(3, f);
         dataFrame.add_row(currRow1);
@@ -149,8 +153,7 @@ void testMultipleKVPutDifferentNodes() {
         double df2Double = f + 20.0;
         currRow2.set(0, df2Int);
         sprintf(buffer2, "DF2_ITEM%i", i);
-        String currStr2(buffer2);
-        currRow2.set(1, &currStr2);
+        currRow2.set(1, new String(buffer2));
         currRow2.set(2, true);
         currRow2.set(3, df2Double);
         dataFrame2.add_row(currRow2);
@@ -179,6 +182,11 @@ void testMultipleKVPutDifferentNodes() {
 
         DataFrame *retrievedDF4 = kvStore.get(key2);
         testDataFrameEquality(retrievedDF3, retrievedDF4);
+
+        delete retrievedDF1;
+        delete retrievedDF2;
+        delete retrievedDF3;
+        delete retrievedDF4;
 
         return true;
     });
@@ -327,7 +335,7 @@ void testFromFile() {
         KVStore &kvStore = *stores[0];
 
         Key file("FILE", 0);
-        DataFrame::fromFile("../data/commits.ltgt", &file, &kvStore);
+        DataFrame::fromFile("data/commits.ltgt", &file, &kvStore);
 
         DataFrame* data = kvStore.get(file);
         assert(data->ncols() == 3);

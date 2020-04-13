@@ -73,8 +73,13 @@ class DataAdapter {
                 std::vector<std::string> tokens = lineParser.parseTokens(line, schema.width());
 
                 valueFactory.populateRow(schema, tokens, row);
+                free(line);
+
                 return true;
-            } else { return false; }
+            } else {
+                if (line) { free(line); }
+                return false;
+            }
         }
 
 };

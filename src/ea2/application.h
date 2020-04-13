@@ -32,4 +32,13 @@
         /** The function that is called after the application setup is complete */
         virtual void _run() = 0;
 
+        /** Runs the application */
+        void run() {
+            _run();
+            if (this_node() == 0) {
+                kv._byteStore._client.teardownSystem();
+            }
+            while (kv._byteStore._client.connected()) { }
+        }
+
 };

@@ -4,6 +4,7 @@
 #include <iomanip>
 #include <cstdarg>
 #include <thread>
+#include <functional>
 
 #include "../utils/column_type.h"
 #include "../utils/instructor-provided/object.h"
@@ -356,7 +357,7 @@ public:
     static void fromVisitor(Key* key, KVStore* kv, const char* charSchema, Writer* writer) {
         Schema schema(charSchema);
         Row row(schema);
-        fromLambda(key, kv, charSchema, [&](DataFrame* df) {
+        _fromLambda(key, kv, charSchema, [&](DataFrame* df) {
             writer->visit(row);
             df->add_row(row);
             return true;
@@ -381,7 +382,7 @@ public:
         Row row(schema);
 
         bool more = true;
-        fromLambda(key, kv, schema._types, [&](DataFrame* df){
+        _fromLambda(key, kv, schema._types, [&](DataFrame* df){
             more = adapter.read(row, file, schema);
             if (more) { df->add_row(row); }
             return more;
@@ -398,7 +399,7 @@ public:
      * @param populate A lambda that adds a single row to the given dataframe. This should return true if a new row was added
      * @param hasMore A lambda that returns true if there is more data to read
      */
-    static void fromLambda(Key* key, KVStore* kv, const char* schema, std::function<bool(DataFrame*)> populate, std::function<bool()> hasMore) {
+    static void _fromLambda(Key* key, KVStore* kv, const char* schema, std::function<bool(DataFrame*)> populate, std::function<bool()> hasMore) {
         Schema s(schema);
         DataFrame* dataFrame = new DataFrame(s);
 

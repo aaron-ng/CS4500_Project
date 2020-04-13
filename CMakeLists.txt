@@ -46,6 +46,10 @@ add_executable(main src/main.cpp src/ea2/kvstore/kvstore.cpp)
 add_executable(server src/server.cpp)
 target_link_libraries (main ${CMAKE_THREAD_LIBS_INIT})
 
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-inconsistent-missing-override")
+
+file(COPY ${CMAKE_SOURCE_DIR}/data DESTINATION ${PROJECT_BINARY_DIR})
+
 add_executable(tests src/ea2/kvstore/kvstore.cpp
         test/test.cpp
         test/test_dataframe.cpp

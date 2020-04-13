@@ -251,7 +251,7 @@ void testParseTokens() {
 void testFile() {
     DataAdapter adapter;
 
-    FILE* f = fopen("../data/data.sor", "r");
+    FILE* f = fopen("data/data.sor", "r");
     Schema schema = adapter.determineSchema(f);
     DataFrame* dataFrame = new DataFrame(schema);
 

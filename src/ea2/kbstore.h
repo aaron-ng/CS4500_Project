@@ -65,9 +65,6 @@ class KBStore {
         /** The client used to talk to other KBstores */
         Client _client;
 
-        /** tue if the byte store is still listening */
-        std::atomic<bool> _listening;
-
         /** The thread that is listening for new connections */
         std::thread _listeningThread;
 
@@ -78,18 +75,17 @@ class KBStore {
          * @param serverIP The IP of the rendezvous server
          * @param serverPort The port of the rendezvous server
          */
-        KBStore(in_addr_t ip, uint16_t port, in_addr_t serverIP, uint16_t serverPort) : _listening(true), _client(ip, port, new KBStoreMessageHander(*this)) {
+        KBStore(in_addr_t ip, uint16_t port, in_addr_t serverIP, uint16_t serverPort) : _client(ip, port, new KBStoreMessageHander(*this)) {
             _client.connect(serverIP, serverPort);
 
             _listeningThread = std::thread([&] {
-                while (_listening) {
+                while (_client.connected()) {
                     _client.poll();
                 }
             });
         }
 
         ~KBStore() {
-            _listening = false;
             _listeningThread.join();
 
             std::vector<Entry*>& entries = _map.entrySet();

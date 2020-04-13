@@ -3,9 +3,11 @@
 
 #include "utils.h"
 #include "../src/demo.h"
+#include "../src/word_count.h"
 #include "../src/network/server.h"
 #include "../src/linus.h"
 
+// Runs the M3 demo
 void testDemo() {
     storeOperation([](std::vector<KVStore*>& stores) {
         std::vector<std::thread> threads;
@@ -35,11 +37,36 @@ void testDemo() {
     exit(0);
 }
 
+// Runs the M4 word count
+void testWordCount() {
+    storeOperation([](std::vector<KVStore*>& stores) {
+        std::vector<std::thread> threads;
+
+        for (int i = 0; i < stores.size(); i++) {
+            threads.emplace_back(std::thread([i, &stores]() {
+                WordCount demo(i, *stores[i]);
+                demo._run();
+
+                if (i == 0) { assert(demo.wordCount == 186); }
+            }));
+        }
+
+        for (int i = 0; i < 3; i++) {
+            threads[i].join();
+        }
+
+        return true;
+    });
+
+    exit(0);
+}
+
+// Runs Linus on some test data
 void testLinus() {
 
-    const char* PROJ = "../data/projects.ltgt";
-    const char* USER = "../data/users.ltgt";
-    const char* COMM = "../data/commits.ltgt";
+    const char* PROJ = "data/projects.ltgt";
+    const char* USER = "data/users.ltgt";
+    const char* COMM = "data/commits.ltgt";
     size_t NUM_NODES = 3;
 
     storeOperation([&](std::vector<KVStore*>& stores) {
@@ -95,4 +122,5 @@ void testLinus() {
 }
 
 TEST(W7, testDemo) { ASSERT_EXIT_ZERO(testDemo) }
+TEST(W7, testWordCount) { ASSERT_EXIT_ZERO(testWordCount) }
 TEST(W7, testLinus) { ASSERT_EXIT_ZERO(testLinus) }

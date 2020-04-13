@@ -250,6 +250,8 @@ class MessageHandler {
          * @param connectedClient The client that sent the message
          */
         virtual void handleMessage(class Message* message, class RemoteClient& connectedClient) = 0;
+
+        virtual ~MessageHandler() {}
 };
 
 /**
