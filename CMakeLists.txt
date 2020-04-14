@@ -6,7 +6,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED True)
 
 find_package(Threads REQUIRED)
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -Wno-inconsistent-missing-override")
 
 configure_file(CMakeLists.txt.in googletest-download/CMakeLists.txt)
 execute_process(
@@ -43,10 +43,10 @@ add_subdirectory(${CMAKE_CURRENT_BINARY_DIR}/googletest-src
 find_package (Threads)
 
 add_executable(main src/main.cpp src/ea2/kvstore/kvstore.cpp)
+target_compile_options(main PRIVATE -Ofast)
+
 add_executable(server src/server.cpp)
 target_link_libraries (main ${CMAKE_THREAD_LIBS_INIT})
-
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-inconsistent-missing-override")
 
 file(COPY ${CMAKE_SOURCE_DIR}/data DESTINATION ${PROJECT_BINARY_DIR})
 

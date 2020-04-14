@@ -353,11 +353,12 @@ public:
      * @param kv The key value store to put the dataframe in
      * @param charSchema The schema of the dataframe
      * @param writer The visitor to use to create the dataframe
+     * @return The number of rows in the new dataframe
      */
-    static void fromVisitor(Key* key, KVStore* kv, const char* charSchema, Writer* writer) {
+    static size_t fromVisitor(Key* key, KVStore* kv, const char* charSchema, Writer* writer) {
         Schema schema(charSchema);
         Row row(schema);
-        _fromLambda(key, kv, charSchema, [&](DataFrame* df) {
+        return _fromLambda(key, kv, charSchema, [&](DataFrame* df) {
             writer->visit(row);
             df->add_row(row);
             return true;
@@ -398,8 +399,9 @@ public:
      * @param schema The schema of the dataframe
      * @param populate A lambda that adds a single row to the given dataframe. This should return true if a new row was added
      * @param hasMore A lambda that returns true if there is more data to read
+     * @return The number of rows in the dataframe
      */
-    static void _fromLambda(Key* key, KVStore* kv, const char* schema, std::function<bool(DataFrame*)> populate, std::function<bool()> hasMore) {
+    static size_t _fromLambda(Key* key, KVStore* kv, const char* schema, std::function<bool(DataFrame*)> populate, std::function<bool()> hasMore) {
         Schema s(schema);
         DataFrame* dataFrame = new DataFrame(s);
 
@@ -442,6 +444,8 @@ public:
         DataframeDescription* desc = new DataframeDescription(new String(schema), columns, descriptions);
         kv->putDataframeDesc(*key, desc);
         delete desc;
+
+        return rows;
     }
 
     /**

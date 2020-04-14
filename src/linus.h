@@ -184,6 +184,9 @@ public:
   Set* uSet = nullptr; // Linus' collaborators
   Set* pSet = nullptr; // projects of collaborators
 
+  size_t taggedProjects = 0;
+  size_t taggedUsers = 0;
+
   Linus(size_t idx, KVStore& kv, const char* _PROJ, const char* _USER, const char* _COMM, size_t _NUM_NODES): Application(idx, kv), PROJ(_PROJ), USER(_USER), COMM(_COMM), NUM_NODES(_NUM_NODES) {}
 
   /** Compute DEGREES of Linus.  */
@@ -213,8 +216,11 @@ public:
     if (this_node() == 0) {
         pln("Reading...");
         DataFrame::fromFile(PROJ, &pK, &kv);
+        pln("Read projects");
         DataFrame::fromFile(USER, &uK, &kv);
+        pln("Read users");
         DataFrame::fromFile(COMM, &cK, &kv);
+        pln("Read commits");
         // This dataframe contains the id of Linus.
         DataFrame::fromScalar(new Key("users-0-0"), &kv, LINUS);
     }
@@ -248,15 +254,23 @@ public:
     delete newUsers;
     ProjectsTagger ptagger(delta, *pSet, projects);
     commits->local_map(ptagger); // marking all projects touched by delta
-    merge(ptagger.newProjects, "projects-", stage);
+    size_t projectDelta = merge(ptagger.newProjects, "projects-", stage);
     pSet->union_(ptagger.newProjects); //
     UsersTagger utagger(ptagger.newProjects, *uSet, users);
     commits->local_map(utagger);
-    merge(utagger.newUsers, "users-", stage + 1);
+    size_t userDelta = merge(utagger.newUsers, "users-", stage + 1);
     uSet->union_(utagger.newUsers);
-    p("    after stage ").p(stage).pln(":");
-    p("        tagged projects: ").pln(pSet->size());
-    p("        tagged users: ").pln(uSet->size());
+    if (this_node() == 0) {
+        taggedProjects += projectDelta;
+        taggedUsers += userDelta;
+
+        p("    after stage ").p(stage).pln(":");
+        p("        projects with degree ").p(stage + 1).p(": ").pln(projectDelta);
+        p("        users with degree ").p(stage + 1).p(": ").pln(userDelta);
+        p("        tagged projects: ").pln(taggedProjects);
+        p("        tagged users: ").pln(taggedUsers);
+    }
+
   }
 
   /** Gather updates to the given set from all the nodes in the systems.
@@ -264,22 +278,23 @@ public:
    * used for the otuput is of the form "name-stage-0" where name is either
    * 'users' or 'projects', stage is the degree of separation being
    * computed.
+   * @return The total number of elements merged
    */
-  void merge(Set& set, char const* name, int stage) {
+  size_t merge(Set& set, char const* name, int stage) {
     if (this_node() == 0) {
       for (size_t i = 1; i < NUM_NODES; ++i) {
-	Key nK(StrBuff(name).c(stage).c("-").c(i).get());
-	DataFrame* delta = kv.waitAndGet(nK);
-	p("    received delta of ").p(delta->nrows())
-	  .p(" elements from node ").pln(i);
-	SetUpdater upd(set);
-	delta->map(upd);
-	delete delta;
+        Key nK(StrBuff(name).c(stage).c("-").c(i).get());
+        DataFrame* delta = kv.waitAndGet(nK);
+        p("    received delta of ").p(delta->nrows())
+          .p(" elements from node ").pln(i);
+        SetUpdater upd(set);
+        delta->map(upd);
+        delete delta;
       }
       p("    storing ").p(set.size()).pln(" merged elements");
       SetWriter writer(set);
       Key k(StrBuff(name).c(stage).c("-0").get());
-      DataFrame::fromVisitor(&k, &kv, "I", &writer);
+      return DataFrame::fromVisitor(&k, &kv, "I", &writer);
     } else {
       p("    sending ").p(set.size()).pln(" elements to master node");
       SetWriter writer(set);
@@ -291,6 +306,7 @@ public:
       SetUpdater upd(set);
       merged->map(upd);
       delete merged;
+      return 0;
     }
   }
 }; // Linus

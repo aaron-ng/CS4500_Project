@@ -38,7 +38,7 @@
             if (this_node() == 0) {
                 kv._byteStore._client.teardownSystem();
             }
-            while (kv._byteStore._client.connected()) { }
+            while (kv._byteStore._client.connected()) { usleep(50); }
         }
 
 };
