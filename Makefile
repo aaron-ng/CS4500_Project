@@ -20,7 +20,8 @@ valgrind: compile
 
 	# A leak is supressed here that has to do with the specific implementation of threads. More info
 	# can be found here https://stackoverflow.com/questions/57016280/memory-leaks-in-pthread-even-if-the-state-is-detached.
-	# This doesn't supress any other leaks.
+	# We also supress an uninitialzed memory warning for the serializer, since data in the buffer can '
+	# be uninitialized, but is constrained by the size param so this is a non-issue.
 	valgrind --leak-check=full --suppressions=valgrind_sup.txt ./build/main 127.0.0.1 25567
 
 clean:

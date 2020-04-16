@@ -172,7 +172,7 @@ public:
  **************************************************************************/
 class Linus : public Application {
 public:
-  int DEGREES = 4;  // How many degrees of separation form linus?
+  int DEGREES = 7;  // How many degrees of separation form linus?
   int LINUS = 4967;   // The uid of Linus (offset in the user df)
   const char* PROJ;
   const char* USER;
@@ -222,7 +222,8 @@ public:
         DataFrame::fromFile(COMM, &cK, &kv);
         pln("Read commits");
         // This dataframe contains the id of Linus.
-        DataFrame::fromScalar(new Key("users-0-0"), &kv, LINUS);
+		Key usersKey("users-0-0");
+        DataFrame::fromScalar(&usersKey, &kv, LINUS);
     }
 
     projects = kv.waitAndGet(pK);

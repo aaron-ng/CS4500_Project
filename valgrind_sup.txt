@@ -7,3 +7,24 @@
    fun:allocate_stack
    fun:pthread_create*
 }
+
+{
+   Serializer_Uninitialized
+   Memcheck:Param
+   socketcall.sendto(msg)
+   fun:send
+   fun:sendData
+   fun:send
+   fun:_ZN7KBStore20KBStoreMessageHander12sendResponseEP9ByteArrayR12RemoteClient
+   fun:handleWaitAndGet
+   fun:_ZN7KBStore20KBStoreMessageHander13handleMessageEP7MessageR12RemoteClient
+   fun:operator()
+   fun:__invoke_impl<void, Client::poll()::<lambda()> >
+   fun:__invoke<Client::poll()::<lambda()> >
+   fun:_M_invoke<0>
+   fun:operator()
+   fun:_ZNSt6thread11_State_implINS_8_InvokerISt5tupleIJZN6Client4pollEvEUlvE_EEEEE6_M_runEv
+   obj:/usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.25
+   fun:start_thread
+   fun:clone
+}
