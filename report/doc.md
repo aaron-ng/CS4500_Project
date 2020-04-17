@@ -110,4 +110,4 @@ SOR files can be loaded by using an instance of the `Schema` class and using the
 There are no open questions at this time.
 
 # Status
-We have implemented the dataframe adapter to read the SoR file format, we have written the dataframe class and we have written the client-server communication. The only thing that remains to be done for the current requirements is to implement the keystore network communication. This should be aproximately 15 hours of work. 
+Linus has been successfully implemented using networking. No work is left to be done.  
